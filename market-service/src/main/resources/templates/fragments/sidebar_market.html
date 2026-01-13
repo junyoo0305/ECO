@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="sidebar(activePage)" class="sidebar">
+    <div class="sidebar-title">판매 게시판</div>
+    <ul>
+        <li th:classappend="${activePage == 'all'} ? 'active'">
+            <a th:href="@{/market/marketpost}">🛒 판매자 게시판</a>
+        </li>
+        <li><a href="#">🛒 구매자 게시판</a></li>
+    </ul>
+</aside>
+</body>
+</html>

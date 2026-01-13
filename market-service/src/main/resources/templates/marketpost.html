@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>전체 매물 장터 - 대항에너지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* 기존 스타일 유지 ... */
+        .list-header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .total-count { font-size: 1.1rem; color: #333; }
+        .total-count b { color: #2fb44a; }
+        .sort-tabs { display: flex; gap: 5px; }
+        .sort-btn { padding: 6px 14px; border: 1px solid #ddd; border-radius: 20px; background: white; color: #666; font-size: 0.9rem; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .sort-btn:hover { background: #f8f9fa; color: #333; }
+        .sort-btn.active { background: #333; color: white; border-color: #333; font-weight: bold; }
+        .market-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .market-table th { padding: 15px 0; border-bottom: 1px solid #ccc; font-size: 0.95rem; color: #666; font-weight: bold; background: #fbfbfb; text-align: center; }
+        .market-table td { padding: 20px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        .market-table tr:hover { background-color: #f8f9fa; cursor: pointer; }
+        .col-no { width: 60px; text-align: center; color: #666; }
+        .col-title { text-align: left; }
+        .col-volume { width: 150px; text-align: right; font-weight: bold; color: #333; padding-right: 30px !important; }
+        .col-price { width: 180px; text-align: right; font-weight: bold; color: #333; padding-right: 20px !important; }
+        .title-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .region-text { font-weight: bold; color: #333; font-size: 1.1rem; }
+        .title-text { font-weight: bold; color: #333; font-size: 1.1rem; }
+        .badge-row { display: flex; gap: 5px; margin-top: 5px; }
+        .badge-energy { background: #fff3e0; color: #f57c00; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .badge-contract { background: #f1f3f5; color: #495057; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; border: 1px solid #e9ecef; }
+        .badge-status-end { background: #fff5f5; color: #e03131; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 40px; }
+        .page-link { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #ddd; border-radius: 4px; color: #555; text-decoration: none; font-size: 0.9rem; background: white; transition: all 0.2s; }
+        .page-link:hover { background-color: #f1f3f5; border-color: #ccc; }
+        .page-link.active { background-color: #2fb44a; color: white; border-color: #2fb44a; font-weight: bold; }
+        .page-link.disabled { color: #ccc; pointer-events: none; border-color: #eee; }
+
+        /* ▼▼▼ [추가] 조건 검색 필터 스타일 (이미지 참고) ▼▼▼ */
+        .filter-toggle-btn {
+            background: white; border: 1px solid #2fb44a; color: #2fb44a; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;
+        }
+        .filter-toggle-btn:hover { background: #ebfbee; }
+
+        .filter-box {
+            background: white; border: 1px solid #ddd; border-radius: 8px; padding: 25px; margin-bottom: 30px; display: none; /* 기본 숨김 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .filter-row { display: flex; margin-bottom: 15px; border-bottom: 1px solid #f1f3f5; padding-bottom: 15px; }
+        .filter-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .filter-label { width: 140px; font-weight: bold; color: #444; flex-shrink: 0; padding-top: 2px; }
+        .filter-content { flex: 1; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+
+        .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.95rem; color: #555; }
+        .checkbox-label input { accent-color: #2fb44a; transform: scale(1.1); }
+
+        .price-input { width: 120px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; text-align: right; }
+        .filter-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        .btn-reset { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; color: #666; cursor: pointer; }
+        .btn-apply { background: #2fb44a; border: 1px solid #2fb44a; padding: 8px 20px; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('marketpost')}"></div>
+
+<div class="page-container">
+    <div th:replace="~{fragments/sidebar_market :: sidebar('all')}"></div>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>🛒 에너지 거래소</h1>
+            <p>전국의 다양한 신재생 에너지 매물을 확인해보세요.</p>
+        </div>
+
+        <form id="searchForm" th:action="@{/market/marketpost}" method="get">
+            <input type="hidden" name="sort" th:value="${sort}">
+            <input type="hidden" name="page" value="0" id="pageInput">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <button type="button" class="filter-toggle-btn" onclick="toggleFilter()">
+                    ⚡ 조건 검색 <span id="toggleIcon">▼</span>
+                </button>
+                <a th:href="@{/market/write}" class="btn-primary" style="text-decoration: none; padding: 8px 16px; font-size: 0.9rem;">
+                    📢 매물 등록
+                </a>
+            </div>
+
+            <div id="filterBox" class="filter-box">
+                <div class="filter-row">
+                    <div class="filter-label">계약 유형</div>
+                    <div class="filter-content">
+                        <label class="checkbox-label"><input type="checkbox" name="contractTypes" value="REC 구매(현물계약)" th:checked="${searchDto.contractTypes != null and #lists.contains(searchDto.contractTypes, 'REC 구매(현물계약)')}"> REC 구매(현물계약)</label>
+                        <label class="checkbox-label"><input type="checkbox" name="contractTypes" value="REC 구매(기간계약)" th:checked="${searchDto.contractTypes != null and #lists.contains(searchDto.contractTypes, 'REC 구매(기간계약)')}"> REC 구매(기간계약)</label>
+                        <label class="checkbox-label"><input type="checkbox" name="contractTypes" value="직접 PPA" th:checked="${searchDto.contractTypes != null and #lists.contains(searchDto.contractTypes, '직접 PPA')}"> 직접 PPA</label>
+                        <label class="checkbox-label"><input type="checkbox" name="contractTypes" value="제3자 PPA" th:checked="${searchDto.contractTypes != null and #lists.contains(searchDto.contractTypes, '제3자 PPA')}"> 제3자 PPA</label>
+                        <label class="checkbox-label"><input type="checkbox" name="contractTypes" value="VPPA" th:checked="${searchDto.contractTypes != null and #lists.contains(searchDto.contractTypes, 'VPPA')}"> VPPA</label>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-label">발전원</div>
+                    <div class="filter-content">
+                        <label class="checkbox-label"><input type="checkbox" name="energyTypes" value="태양광" th:checked="${searchDto.energyTypes != null and #lists.contains(searchDto.energyTypes, '태양광')}"> 태양광</label>
+                        <label class="checkbox-label"><input type="checkbox" name="energyTypes" value="풍력" th:checked="${searchDto.energyTypes != null and #lists.contains(searchDto.energyTypes, '풍력')}"> 풍력</label>
+                        <label class="checkbox-label"><input type="checkbox" name="energyTypes" value="수력" th:checked="${searchDto.energyTypes != null and #lists.contains(searchDto.energyTypes, '수력')}"> 수력</label>
+                        <label class="checkbox-label"><input type="checkbox" name="energyTypes" value="바이오" th:checked="${searchDto.energyTypes != null and #lists.contains(searchDto.energyTypes, '바이오')}"> 바이오</label>
+                        <label class="checkbox-label"><input type="checkbox" name="energyTypes" value="해양" th:checked="${searchDto.energyTypes != null and #lists.contains(searchDto.energyTypes, '해양')}"> 해양</label>
+                        <label class="checkbox-label"><input type="checkbox" name="energyTypes" value="지열" th:checked="${searchDto.energyTypes != null and #lists.contains(searchDto.energyTypes, '지열')}"> 지열</label>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-label">생산 지역</div>
+                    <div class="filter-content" style="gap: 10px;">
+                        <th:block th:each="region : ${ {'서울','경기','부산','대구','인천','광주','대전','울산','세종','강원','충북','충남','전북','전남','경북','경남','제주'} }">
+                            <label class="checkbox-label" style="min-width: 50px;">
+                                <input type="checkbox" name="regions" th:value="${region}" th:checked="${searchDto.regions != null and #lists.contains(searchDto.regions, region)}"> [[${region}]]
+                            </label>
+                        </th:block>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-label">계약 희망 판매단가</div>
+                    <div class="filter-content">
+                        <input type="number" name="minPrice" class="price-input" placeholder="최소" th:value="${searchDto.minPrice}"> 원
+                        <span>~</span>
+                        <input type="number" name="maxPrice" class="price-input" placeholder="최대" th:value="${searchDto.maxPrice}"> 원
+
+                        <label class="checkbox-label" style="margin-left: 20px;">
+                            <input type="checkbox" name="isNego" value="true" th:checked="${searchDto.isNego}"> 협의 가능한 매물만 보기
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="button" class="btn-reset" onclick="resetFilter()">필터 초기화 ↺</button>
+                    <button type="submit" class="btn-apply">필터 적용</button>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+                <div class="sort-tabs">
+                    <button type="button" onclick="submitSort('latest')" class="sort-btn" th:classappend="${sort == 'latest'} ? 'active'">최신 등록순</button>
+                    <button type="button" onclick="submitSort('volume')" class="sort-btn" th:classappend="${sort == 'volume'} ? 'active'">전력량 많은순</button>
+                    <button type="button" onclick="submitSort('priceHigh')" class="sort-btn" th:classappend="${sort == 'priceHigh'} ? 'active'">단가 높은순</button>
+                    <button type="button" onclick="submitSort('priceLow')" class="sort-btn" th:classappend="${sort == 'priceLow'} ? 'active'">단가 낮은순</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="list-header-row" style="margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 10px;">
+            <div class="total-count">
+                총 <b th:text="${paging.totalElements}">0</b> 건
+            </div>
+        </div>
+
+        <table class="market-table">
+            <thead>
+            <tr>
+                <th class="col-no">No.</th>
+                <th class="col-title">매물명</th>
+                <th class="col-volume">전력량</th>
+                <th class="col-price">판매단가</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item, loop : ${paging}" th:onclick="|location.href='@{/market/post/{id}(id=${item.id})}'|">
+                <td class="col-no" th:text="${paging.totalElements - (paging.number * paging.size) - loop.index}">22</td>
+                <td class="col-title">
+                    <div class="title-top">
+                        <span class="badge-status-end" th:unless="${item.status == '판매중'}" th:text="${item.status}">판매종료</span>
+                        <span class="badge-energy" th:text="${item.energyType}">태양광</span>
+                        <span class="region-text" th:text="'[' + ${#strings.arraySplit(item.location, ' ')[0]} + ']'">[제주]</span>
+                        <span class="title-text" th:text="${item.title}">제목</span>
+                    </div>
+                    <div class="badge-row" th:if="${item.contractType != null}">
+                        <span class="badge-contract" th:each="type : ${#strings.arraySplit(item.contractType, ',')}" th:text="${type.trim()}">REC현물</span>
+                    </div>
+                </td>
+                <td class="col-volume" th:if="${item.volumeKwh != null}">
+                    <span th:if="${item.volumeKwh >= 1000000}" th:text="${#numbers.formatDecimal(item.volumeKwh / 1000000.0, 1, 1)} + ' GWh'"></span>
+                    <span th:if="${item.volumeKwh >= 1000 and item.volumeKwh < 1000000}" th:text="${#numbers.formatDecimal(item.volumeKwh / 1000.0, 1, 1)} + ' MWh'"></span>
+                    <span th:if="${item.volumeKwh < 1000}" th:text="${#numbers.formatInteger(item.volumeKwh, 0, 'COMMA')} + ' kWh'"></span>
+                </td>
+                <td class="col-volume" th:unless="${item.volumeKwh != null}">-</td>
+                <td class="col-price">
+                    <span th:if="${item.priceKrw != null}" th:text="${#numbers.formatInteger(item.priceKrw, 0, 'COMMA')} + ' 원/kWh'"></span>
+                    <span th:unless="${item.priceKrw != null}" style="color: #999; font-weight: normal;">가격협의</span>
+                </td>
+            </tr>
+            <tr th:if="${paging.isEmpty()}">
+                <td colspan="4" style="text-align: center; padding: 50px; color: #888;">검색된 매물이 없습니다.</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination" th:if="${!paging.isEmpty()}">
+            <a class="page-link" href="javascript:void(0)" onclick="movePage(0)" th:classappend="${paging.first} ? 'disabled'">&lt;&lt;</a>
+            <a class="page-link" href="javascript:void(0)" th:onclick="|movePage(${paging.number - 1})|" th:classappend="${paging.first} ? 'disabled'">&lt;</a>
+
+            <th:block th:with="start=${(paging.number/10)*10}, end=${(paging.totalPages == 0) ? 0 : ( (paging.totalPages - 1) < (start + 9) ? (paging.totalPages - 1) : (start + 9) )}">
+                <th:block th:each="page: ${#numbers.sequence(start, end)}">
+                    <a class="page-link" href="javascript:void(0)"
+                       th:onclick="|movePage(${page})|"
+                       th:text="${page + 1}"
+                       th:classappend="${page == paging.number} ? 'active'">1</a>
+                </th:block>
+            </th:block>
+
+            <a class="page-link" href="javascript:void(0)" th:onclick="|movePage(${paging.number + 1})|" th:classappend="${paging.last} ? 'disabled'">&gt;</a>
+            <a class="page-link" href="javascript:void(0)" th:onclick="|movePage(${paging.totalPages - 1})|" th:classappend="${paging.last} ? 'disabled'">&gt;&gt;</a>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // 필터 토글 기능
+    function toggleFilter() {
+        const box = document.getElementById('filterBox');
+        const icon = document.getElementById('toggleIcon');
+        if (box.style.display === 'none' || box.style.display === '') {
+            box.style.display = 'block';
+            icon.innerText = '▲';
+        } else {
+            box.style.display = 'none';
+            icon.innerText = '▼';
+        }
+    }
+
+    // 초기화 버튼
+    function resetFilter() {
+        const inputs = document.querySelectorAll('#filterBox input');
+        inputs.forEach(input => {
+            if(input.type === 'checkbox') input.checked = false;
+            else input.value = '';
+        });
+    }
+
+    // 정렬 버튼 클릭 시
+    function submitSort(sortVal) {
+        document.querySelector('input[name="sort"]').value = sortVal;
+        document.getElementById('pageInput').value = 0; // 정렬 바뀌면 1페이지로
+        document.getElementById('searchForm').submit();
+    }
+
+    // 페이지 이동 시
+    function movePage(pageVal) {
+        document.getElementById('pageInput').value = pageVal;
+        document.getElementById('searchForm').submit();
+    }
+
+    // 페이지 로드 시 검색 조건이 있으면 필터창 열어두기
+    window.onload = function() {
+        // (간단하게 체크박스가 하나라도 체크되어 있거나 가격이 있으면 열기)
+        const inputs = document.querySelectorAll('#filterBox input');
+        let hasFilter = false;
+        inputs.forEach(input => {
+            if((input.type === 'checkbox' && input.checked) || (input.type === 'number' && input.value !== '')) {
+                hasFilter = true;
+            }
+        });
+        if(hasFilter) {
+            toggleFilter();
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>판매글 관리 - 판매자 센터</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header('profile')}"></header>
+
+<div class="page-container">
+    <aside th:replace="~{fragments/sidebar_mypage :: sidebar('sellerpost')}"></aside>
+
+    <main class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px;">
+            <div class="header" style="margin-bottom: 0;">
+                <h1>📢 판매 게시글 관리</h1>
+                <p>등록한 매물을 수정하거나 판매 상태를 변경할 수 있습니다.</p>
+            </div>
+            <a th:href="@{/market/write}" class="btn-primary" style="text-decoration: none;">+ 새 판매글 등록</a>
+        </div>
+
+        <div class="card">
+            <table>
+                <colgroup>
+                    <col style="width: 80px;">
+                    <col>
+                    <col style="width: 100px;">
+                    <col style="width: 100px;">
+                    <col style="width: 140px;">
+                    <col style="width: 250px;">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>사진</th>
+                    <th>제목</th>
+                    <th>에너지원</th>
+                    <th>상태</th>
+                    <th>가격</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="post : ${posts}">
+                    <td>
+                        <div th:if="${post.imageUrl != null}" style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden;">
+                            <img th:src="${post.imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div th:unless="${post.imageUrl != null}" class="thumb-placeholder">No Img</div>
+                    </td>
+
+                    <td th:text="${post.title}" style="font-weight: 600;">제목</td>
+
+                    <td>
+                        <span class="badge" style="background: #f1f5f9; color: var(--text-dark);" th:text="${post.energyType}">태양광</span>
+                    </td>
+
+                    <td>
+                        <span class="badge"
+                              th:classappend="${post.status == '판매중'} ? 'status-1' : 'status-2'"
+                              th:text="${post.status}">판매중</span>
+                    </td>
+
+                    <td th:text="${#numbers.formatInteger(post.priceKrw, 0, 'COMMA')} + '원'" style="font-weight: bold;"></td>
+
+                    <td>
+                        <button type="button" class="btn-action btn-end"
+                                th:if="${post.status == '판매중'}"
+                                th:onclick="'updateStatus(' + ${post.id} + ', \'N\')'">종료</button>
+
+                        <button type="button" class="btn-action btn-resume"
+                                th:unless="${post.status == '판매중'}"
+                                th:onclick="'updateStatus(' + ${post.id} + ', \'Y\')'">재개</button>
+
+                        <button type="button" class="btn-action btn-edit"
+                                th:onclick="|location.href='@{/market/edit/{id}(id=${post.id})}'|">수정</button>
+
+                        <button type="button" class="btn-action btn-del"
+                                th:onclick="'deletePost(' + ${post.id} + ')'">삭제</button>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(posts)}">
+                    <td colspan="6" style="text-align: center; padding: 60px; color: var(--text-light);">
+                        등록된 판매글이 없습니다.<br>
+                        우측 상단 '새 판매글 등록' 버튼을 눌러 매물을 등록해보세요!
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script>
+    function updateStatus(id, status) {
+        var actionName = (status === 'Y') ? "판매 재개" : "판매 종료";
+        if (confirm(id + "번 게시글을 [" + actionName + "] 상태로 변경하시겠습니까?")) {
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "/market/status/" + id);
+            var hiddenField = document.createElement("input");
+            hiddenField.type = "hidden"; hiddenField.name = "status"; hiddenField.value = status;
+            form.appendChild(hiddenField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    function deletePost(id) {
+        if (confirm("정말로 " + id + "번 게시글을 삭제하시겠습니까?\n삭제된 글은 복구할 수 없습니다.")) {
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "/market/delete/" + id);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+</body>
+</html>

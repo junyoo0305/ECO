@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="header(activeMenu)" class="top-header">
+    <a th:href="@{/seller/index}" class="logo">기업 재생에너지 지원센터</a>
+    <nav>
+        <ul>
+            <li><a th:href="@{/market/marketpost}" th:classappend="${activeMenu == 'market'} ? 'active'">게시판 (거래소)</a></li>
+            <li><a th:href="@{/seller/profile}" th:classappend="${activeMenu == 'profile'} ? 'active'">마이페이지</a></li>
+        </ul>
+    </nav>
+    <div style="color: #94a3b8; font-size: 0.9rem;">
+        <span>대항에너지님</span> | <a href="#" style="color: #cbd5e1; margin-left:10px;">로그아웃</a>
+    </div>
+</header>
+</body>
+</html>

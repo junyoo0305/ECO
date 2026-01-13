@@ -1,0 +1,6 @@
+rootProject.name = 'ECO'
+
+include 'eureka-server'
+include 'gateway-service'
+include 'seller-service'
+include 'market-service'

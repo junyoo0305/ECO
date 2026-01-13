@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>매물 상세정보 - 대항에너지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* =========================================
+           1. 기존 스타일 유지 (정보가 깨지지 않도록)
+           ========================================= */
+        .detail-header { border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        .detail-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; color: #333; }
+        .detail-meta { color: #666; font-size: 0.95rem; display: flex; gap: 15px; align-items: center; }
+
+        .section-header { font-size: 1.2rem; font-weight: bold; margin: 40px 0 15px; border-left: 5px solid #2fb44a; padding-left: 10px; color: #333; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px; }
+        .info-item { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
+        .info-label { color: #888; font-size: 0.85rem; margin-bottom: 8px; display: block; }
+        .info-value { font-size: 1.1rem; font-weight: 600; color: #333; }
+
+        .price-card { background: #eefbee; border: 1px solid #c3e6cb; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
+        .price-value { font-size: 2.2rem; font-weight: bold; color: #1e7e34; margin-bottom: 5px; }
+        .price-sub { font-size: 1rem; color: #555; }
+
+        .content-box { line-height: 1.6; color: #444; min-height: 200px; white-space: pre-wrap; background: #fff; border: 1px solid #eee; padding: 25px; border-radius: 8px; }
+
+        /* =========================================
+           2. 모달창 스타일 추가 (중앙 정렬 수정됨)
+           ========================================= */
+        .modal-overlay {
+            display: none; /* 평소엔 숨김 */
+            position: fixed; /* 화면 기준 고정 */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+            z-index: 9999;
+
+            /* 여기가 핵심! 화면 정중앙 배치 */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-window {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease-out;
+            position: relative; /* 내부 요소 배치 기준 */
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; color: #333; }
+
+        .modal-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            resize: none;
+            font-family: inherit;
+            margin-bottom: 20px;
+            box-sizing: border-box; /* 패딩 포함 크기 계산 */
+        }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+        .btn-cancel { padding: 10px 20px; background: #f1f3f5; border: none; border-radius: 6px; cursor: pointer; color: #333; font-weight: 600; }
+        .btn-submit { padding: 10px 20px; background: #2fb44a; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; }
+        .btn-cancel:hover { background: #e9ecef; }
+        .btn-submit:hover { background: #25963b; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('market')}"></div>
+
+<div class="page-container">
+    <div th:replace="~{fragments/sidebar_market :: sidebar('all')}"></div>
+
+    <main class="main-content">
+        <div class="card detail-header">
+            <div style="margin-bottom: 15px; display: flex; gap: 8px;">
+                <span class="badge status-1" th:if="${post.status == '판매중'}">판매중</span>
+                <span class="badge status-2" th:unless="${post.status == '판매중'}" th:text="${post.status}">상태</span>
+                <span class="badge" style="background-color: #2fb44a; color: white;" th:text="${post.energyType}">태양광</span>
+            </div>
+
+            <div th:if="${post.imageUrl != null}" style="margin: 20px 0; text-align: center; background: #fafafa; padding: 20px; border-radius: 10px; border: 1px solid #eee;">
+                <img th:src="${post.imageUrl}" alt="매물 상세 이미지" style="max-width: 100%; max-height: 500px; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            </div>
+
+            <h1 class="detail-title" th:text="${post.title}">게시글 제목</h1>
+            <div class="detail-meta">
+                <span>📍 <span th:text="${post.location} + ' ' + (${post.locationDetail} ?: '')">주소</span></span>
+                <span>📅 등록일: <span th:text="${#temporals.format(post.regDate, 'yyyy-MM-dd')}">2024-01-01</span></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-header">💰 희망 매도 단가</div>
+            <div class="price-card">
+                <div class="price-value" th:text="${#numbers.formatInteger(post.priceKrw, 0, 'COMMA')} + ' 원'">0 원</div>
+                <div class="price-sub">
+                    (단위: <span th:text="${post.contractUnit == 'kWh' ? '원/kWh' : '원/REC'}">원/kWh</span>)
+                    <span th:if="${post.isPriceNegotiable == 'Y'}" style="color: #d63384; font-weight: bold; margin-left: 10px;">* 가격 협의 가능</span>
+                </div>
+            </div>
+
+            <div class="section-header">⚡ 발전소 정보</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">설비 용량</span>
+                    <span class="info-value" th:text="${post.facilityCapacity} + ' kW'">100 kW</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">REC 가중치</span>
+                    <span class="info-value" th:text="${post.weightingFactor}">1.0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">부지 유형</span>
+                    <span class="info-value" th:text="${post.landType}">지붕</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">부지 면적</span>
+                    <span class="info-value" th:text="${#numbers.formatInteger(post.landArea, 0, 'COMMA')} + ' m²'">100 m²</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">판매 가능 전력량</span>
+                    <span class="info-value" th:text="${post.volumeKwh != null ? #numbers.formatInteger(post.volumeKwh, 0, 'COMMA') + ' kWh' : '-'}">0 kWh</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">판매 가능 REC</span>
+                    <span class="info-value" th:text="${post.volumeRec != null ? #numbers.formatInteger(post.volumeRec, 0, 'COMMA') + ' REC' : '-'}">0 REC</span>
+                </div>
+            </div>
+
+            <div class="section-header">📄 계약 조건</div>
+            <div class="info-grid">
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">선호 계약 유형</span>
+                    <span class="info-value" th:text="${post.contractType}">REC 현물, 장기</span>
+                </div>
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">희망 계약 기간</span>
+                    <div class="info-value">
+                        <span th:text="${post.contractStartDate}"></span> ~ <span th:text="${post.contractEndDate}"></span>
+                        <span style="font-size: 0.9rem; color: #d63384; margin-left: 10px;" th:if="${post.isPeriodNegotiable == 'Y'}">* 기간 협의 가능</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">📝 상세 설명</div>
+            <div class="content-box" th:text="${post.content}">내용</div>
+
+            <div style="margin-top: 40px; text-align: center; display: flex; justify-content: center; gap: 15px;">
+                <a th:href="@{/market/marketpost}" style="padding: 12px 30px; background: #666; color: white; border-radius: 4px; text-decoration: none;">목록으로</a>
+                <button th:unless="${post.status == '판매종료'}"
+                        style="padding: 12px 30px; background: #2fb44a; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;"
+                        onclick="openModal()">
+                    판매자에게 문의하기
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="inquiryModal" class="modal-overlay">
+    <div class="modal-window">
+        <div class="modal-title">📨 판매자에게 문의하기</div>
+        <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+            구매 희망 내용이나 궁금한 점을 남겨주세요.<br>
+            판매자가 확인 후 연락드릴 예정입니다.
+        </p>
+
+        <form action="/market/request" method="post">
+            <input type="hidden" name="postId" th:value="${post.id}">
+            <input type="hidden" name="sellerId" th:value="${post.sellerId ?: 1}">
+
+            <textarea name="message" class="modal-textarea" placeholder="예) 가격 협의가 가능한지 궁금합니다. 연락 부탁드립니다." required></textarea>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal()">취소</button>
+                <button type="submit" class="btn-submit">문의 보내기</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    // 모달 열기
+    function openModal() {
+        document.getElementById('inquiryModal').style.display = 'flex';
+    }
+
+    // 모달 닫기
+    function closeModal() {
+        document.getElementById('inquiryModal').style.display = 'none';
+    }
+
+    // 배경 클릭 시 닫기
+    window.onclick = function(event) {
+        var modal = document.getElementById('inquiryModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    // Spring Boot 버전 (3.1.5 유지)
+    id 'org.springframework.boot' version '3.1.5' apply false
+    // Gradle 8.x와 호환되는 최신 버전으로 업데이트
+    id 'io.spring.dependency-management' version '1.1.6' apply false
+}
+
+allprojects {
+    group = 'com.example'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    // Java 17 설정 (확장 블록 방식)
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    dependencies {
+        // 모든 마이크로서비스 공통 의존성
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.4"
+        }
+    }
+}

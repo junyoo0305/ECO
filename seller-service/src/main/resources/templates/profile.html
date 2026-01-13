@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>기업 정보 - 판매자 센터</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* [페이지 전용 스타일] 기업 정보 리스트 */
+        .info-list { display: flex; flex-direction: column; gap: 15px; }
+        .info-row { display: flex; align-items: flex-start; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { width: 160px; font-weight: 600; color: var(--text-light); font-size: 0.95rem; }
+        .info-value { flex: 1; color: var(--text-dark); font-size: 0.95rem; line-height: 1.5; }
+
+        /* [페이지 전용 스타일] 모달 (팝업) */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-window {
+            background: white; padding: 30px; border-radius: 12px; width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); animation: fadeIn 0.2s;
+        }
+        .modal-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; color: var(--text-dark); }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); }
+        .form-input {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.9rem;
+        }
+        .form-input:focus { border-color: var(--primary); outline: none; }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 25px; }
+        .btn-cancel { padding: 8px 16px; background: #f1f5f9; border: none; border-radius: 6px; cursor: pointer; color: var(--text-light); }
+        .btn-submit-modal { padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 알림 메시지 */
+        .alert { padding: 12px; margin-bottom: 20px; border-radius: 6px; text-align: center; font-size: 0.9rem; }
+        .alert-success { background-color: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
+    </style>
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header('profile')}"></header>
+
+<div class="page-container">
+
+    <aside th:replace="~{fragments/sidebar_mypage :: sidebar('profile')}"></aside>
+
+    <main class="main-content">
+
+        <div th:if="${msg}" class="alert alert-success" th:text="${msg}"></div>
+
+        <div class="card">
+            <div class="header" style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+                <h2 style="font-size: 1.2rem; margin: 0;">🏢 기업 정보</h2>
+            </div>
+
+            <div class="info-list">
+                <div class="info-row">
+                    <div class="info-label">기업회원 ID</div>
+                    <div class="info-value" th:text="${info.sellComId}">user123</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">사업자명</div>
+                    <div class="info-value" th:text="${info.sellComName}">대항에너지(주)</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">사업자 등록번호</div>
+                    <div class="info-value" th:text="${info.sellRegNum}">123-45-67890</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">대표자명</div>
+                    <div class="info-value" th:text="${info.sellRepName}">홍길동</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">사업자 주소</div>
+                    <div class="info-value" th:text="${info.sellComAdr}">서울시 강남구 테헤란로 123</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">대표 연락처</div>
+                    <div class="info-value" th:text="${info.sellComNum}">02-1234-5678</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">대표 이메일</div>
+                    <div class="info-value" th:text="${info.sellComEmail}">contact@company.com</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="header" style="margin-bottom: 20px;">
+                <h2 style="font-size: 1.2rem; margin: 0 0 5px 0;">👨‍💼 실무 담당자 관리</h2>
+                <p style="font-size: 0.9rem; color: var(--text-light);">구매자와의 원활한 소통을 위해 실무 담당자를 등록해주세요.</p>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>이름</th>
+                    <th>부서/직책</th>
+                    <th>연락처</th>
+                    <th>이메일</th>
+                    <th style="width: 80px; text-align: center;">관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="mgr : ${managers}">
+                    <td style="font-weight: bold;" th:text="${mgr.managerName}">김철수</td>
+                    <td th:text="${mgr.department}">영업팀</td>
+                    <td th:text="${mgr.phone}">010-1234-5678</td>
+                    <td th:text="${mgr.email}">kim@company.com</td>
+                    <td style="text-align: center;">
+                        <form th:action="@{/seller/manager/delete/{id}(id=${mgr.subManagerId})}" method="post"
+                              onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                            <button type="submit" class="btn-action btn-del">삭제</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(managers)}">
+                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">
+                        등록된 담당자가 없습니다. 아래 버튼을 눌러 추가해주세요.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <button class="btn-primary" onclick="openManagerModal()" style="margin-top: 20px;">
+                + 담당자 추가
+            </button>
+        </div>
+
+    </main>
+</div>
+
+<div id="managerModal" class="modal-overlay">
+    <div class="modal-window">
+        <div class="modal-header">새 담당자 등록</div>
+        <form action="/seller/manager/add" method="post">
+            <div class="form-group">
+                <label>이름</label>
+                <input type="text" name="managerName" class="form-input" placeholder="예: 박대리" required>
+            </div>
+            <div class="form-group">
+                <label>부서 및 직책</label>
+                <input type="text" name="department" class="form-input" placeholder="예: 영업팀 대리" required>
+            </div>
+            <div class="form-group">
+                <label>연락처</label>
+                <input type="text" name="phone" class="form-input" placeholder="010-0000-0000" required>
+            </div>
+            <div class="form-group">
+                <label>이메일</label>
+                <input type="email" name="email" class="form-input" placeholder="example@email.com" required>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeManagerModal()">취소</button>
+                <button type="submit" class="btn-submit-modal">등록하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openManagerModal() { document.getElementById('managerModal').style.display = 'flex'; }
+    function closeManagerModal() { document.getElementById('managerModal').style.display = 'none'; }
+    window.onclick = function(event) {
+        var modal = document.getElementById('managerModal');
+        if (event.target == modal) { closeManagerModal(); }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+package com.example.market.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "post_files")
+public class PostFile {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "POST_FILE_ID")
+    private Long id;
+
+    @Column(name = "POST_ID")
+    private Long postId; // 어떤 게시글의 사진인지 (외래키)
+
+    @Column(name = "ORIGINAL_FILE_NAME")
+    private String originalFileName;
+
+    @Column(name = "STORED_FILE_NAME")
+    private String storedFileName; // 실제 저장된 이름 (UUID 포함)
+
+    @Column(name = "DEL_YN")
+    private String delYn;
+
+    // ▼▼▼ [필수 추가] 이 메서드가 있어야 값을 'Y'로 바꿀 수 있습니다. ▼▼▼
+    public void delete() {
+        this.delYn = "Y";
+    }
+}

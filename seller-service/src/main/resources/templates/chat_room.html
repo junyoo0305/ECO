@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>1:1 채팅방 - 판매자 센터</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* 채팅방 전용 스타일 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px; /* 채팅창 높이 고정 */
+            background-color: #f1f5f9; /* 배경색 (카톡처럼 연한 회색) */
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .chat-history {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto; /* 스크롤 생기게 함 */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 메시지 말풍선 공통 */
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        /* 상대방 (BUYER) 메시지 - 왼쪽 */
+        .message-left {
+            align-self: flex-start;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-top-left-radius: 2px; /* 말꼬리 효과 */
+            color: #1e293b;
+        }
+
+        /* 나 (SELLER) 메시지 - 오른쪽 */
+        .message-right {
+            align-self: flex-end;
+            background-color: #3b82f6; /* 파란색 */
+            color: white;
+            border-top-right-radius: 2px; /* 말꼬리 효과 */
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            display: block;
+            opacity: 0.7;
+        }
+
+        /* 오른쪽(나) 시간 표시는 말풍선 밖 왼쪽에 두거나, 안쪽에 둠. 여기선 심플하게 안쪽에 */
+        .message-right .message-time {
+            text-align: right;
+            color: #e0f2fe;
+        }
+
+        /* 입력창 영역 */
+        .chat-input-area {
+            background: white;
+            padding: 15px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            resize: none; /* 크기 조절 막기 */
+            height: 50px;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .btn-send {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-send:hover {
+            background-color: #2563eb;
+        }
+
+        /* 날짜 구분선 (선택사항) */
+        .date-divider {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin: 10px 0;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header('profile')}"></header>
+
+<div class="page-container">
+    <aside th:replace="~{fragments/sidebar_mypage :: sidebar('chat')}"></aside>
+
+    <main class="main-content">
+        <div class="header" style="margin-bottom: 15px;">
+            <a th:href="@{/seller/chat/list}" style="text-decoration: none; color: #64748b; font-size: 0.9rem;">← 목록으로 돌아가기</a>
+
+            <div style="margin-top: 5px;">
+                <h2 style="margin: 0; font-size: 1.2rem;" th:text="${roomInfo.postTitle}">
+                    게시글 제목
+                </h2>
+                <span style="font-size: 0.85rem; color: #64748b;"
+                      th:text="'💬 with ' + ${roomInfo.opponentName}">
+                    with 상대방이름
+                </span>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-history" id="chatHistory">
+
+                <div th:if="${#lists.isEmpty(messages)}" style="text-align: center; color: #94a3b8; margin-top: 50px;">
+                    대화 내용이 없습니다. 첫 메시지를 보내보세요! 👋
+                </div>
+
+                <th:block th:each="msg : ${messages}">
+
+                    <div th:if="${msg.writerType == 'SELLER'}" class="message-bubble message-right">
+                        <span th:text="${msg.content}">네, 안녕하세요!</span>
+                        <span class="message-time" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">10:05</span>
+                    </div>
+
+                    <div th:if="${msg.writerType == 'BUYER'}" class="message-bubble message-left">
+                        <div style="font-weight: bold; font-size: 0.8rem; margin-bottom: 3px; color: #64748b;">구매자</div>
+                        <span th:text="${msg.content}">메시지 내용</span>
+                        <span class="message-time" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">10:00</span>
+                    </div>
+
+                </th:block>
+
+            </div>
+
+            <form class="chat-input-area" th:action="@{/seller/chat/send}" method="post">
+                <input type="hidden" name="requestId" th:value="${roomId}">
+
+                <textarea name="content" class="chat-input" placeholder="메시지를 입력하세요..." required></textarea>
+                <button type="submit" class="btn-send">전송</button>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+    // 페이지 로딩 시 스크롤을 맨 아래로 내리기 (최신 메시지 보게)
+    window.onload = function() {
+        var chatHistory = document.getElementById("chatHistory");
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    };
+
+    // 엔터키 누르면 전송되게 하기 (Shift+Enter는 줄바꿈)
+    document.querySelector('.chat-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // 줄바꿈 방지
+            this.form.submit();
+        }
+    });
+</script>
+
+</body>
+</html>

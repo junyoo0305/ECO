@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>매물 수정 - 대항에너지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* post_write.html과 동일한 스타일 적용 */
+        .section-title { font-size: 1.1rem; font-weight: bold; margin: 30px 0 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; }
+        .form-row { display: flex; margin-bottom: 20px; align-items: flex-start; }
+        .form-label { width: 180px; font-weight: bold; color: #444; padding-top: 10px; flex-shrink: 0; position: relative; }
+        .form-input-box { flex: 1; }
+
+        .radio-group { display: flex; gap: 20px; flex-wrap: wrap; padding-top: 10px; }
+        .radio-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .radio-group input[type="radio"], .radio-group input[type="checkbox"] { transform: scale(1.2); accent-color: #2fb44a; }
+
+        .input-group { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        .form-input:focus { border-color: #2fb44a; outline: none; }
+
+        /* 읽기 전용 입력창 스타일 (회색 배경) */
+        .form-input[readonly] { background-color: #f5f5f5; color: #888; cursor: default; }
+
+        .unit-text { color: #666; font-weight: bold; min-width: 60px; }
+        .helper-text { font-size: 0.85rem; color: #888; margin-top: 5px; }
+
+        .btn-green { background-color: #2fb44a; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-green:hover { background-color: #26963d; }
+
+        /* 이미지 미리보기 스타일 */
+        .current-image-box { margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; border: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
+        .current-image-box img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+
+        /* 툴팁 스타일 */
+        .tooltip-icon {
+            display: inline-block; width: 18px; height: 18px; background: #eee; color: #666; border-radius: 50%;
+            text-align: center; line-height: 18px; font-size: 12px; cursor: help; margin-left: 5px;
+        }
+        .tooltip-content {
+            visibility: hidden; width: 320px; background-color: #f9f9f9; color: #333; text-align: left;
+            border: 1px solid #ddd; padding: 10px; border-radius: 6px; position: absolute; z-index: 1;
+            bottom: 120%; left: 50%; margin-left: -60px; opacity: 0; transition: opacity 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); font-weight: normal; font-size: 0.85rem; line-height: 1.4;
+        }
+        .tooltip-icon:hover .tooltip-content { visibility: visible; opacity: 1; }
+        .tooltip-content::after {
+            content: ""; position: absolute; top: 100%; left: 20px; margin-left: -5px;
+            border-width: 5px; border-style: solid; border-color: #ddd transparent transparent transparent;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('market')}"></div>
+
+<div class="page-container">
+    <div th:replace="~{fragments/sidebar_market :: sidebar('all')}"></div>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>📝 매물 정보 수정</h1>
+            <p>등록된 발전소 정보를 수정합니다.</p>
+        </div>
+
+        <div class="card">
+            <form th:action="@{/market/edit/{id}(id=${post.id})}" method="post" enctype="multipart/form-data" onsubmit="prepareFormData()">
+
+                <div class="section-title">기본 정보</div>
+
+                <div class="form-row">
+                    <label class="form-label">게시글 제목 <span style="color:red">*</span></label>
+                    <div class="form-input-box">
+                        <input type="text" name="title" class="form-input" required th:value="${post.title}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">발전원 <span style="color:red">*</span></label>
+                    <div class="form-input-box radio-group">
+                        <label><input type="radio" name="energyType" value="태양광" th:checked="${post.energyType == '태양광'}"> 태양광</label>
+                        <label><input type="radio" name="energyType" value="풍력" th:checked="${post.energyType == '풍력'}"> 풍력</label>
+                        <label><input type="radio" name="energyType" value="수력" th:checked="${post.energyType == '수력'}"> 수력</label>
+                        <label><input type="radio" name="energyType" value="바이오" th:checked="${post.energyType == '바이오'}"> 바이오</label>
+                        <label><input type="radio" name="energyType" value="해양" th:checked="${post.energyType == '해양'}"> 해양</label>
+                        <label><input type="radio" name="energyType" value="지열" th:checked="${post.energyType == '지열'}"> 지열</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">대표 이미지</label>
+                    <div class="form-input-box">
+                        <div th:if="${post.imageUrl != null}" class="current-image-box">
+                            <img th:src="${post.imageUrl}" alt="현재 이미지">
+                            <div>
+                                <p style="font-weight: bold; margin-bottom: 5px;">현재 등록된 이미지</p>
+                                <p style="font-size: 0.8rem; color: #666;">새로운 파일을 선택하면 이 사진은 삭제되고 교체됩니다.</p>
+                            </div>
+                        </div>
+                        <input type="file" name="imageFile" class="form-input" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="section-title">부지 정보</div>
+
+                <div class="form-row">
+                    <label class="form-label">유휴 부지 면적</label>
+                    <div class="form-input-box">
+                        <div class="radio-group" style="margin-bottom: 10px; padding-top: 0;">
+                            <label><input type="radio" name="landType" value="지붕" th:checked="${post.landType == '지붕'}"> 지붕</label>
+                            <label><input type="radio" name="landType" value="나대지" th:checked="${post.landType == '나대지'}"> 나대지</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="number" name="landArea" class="form-input" th:value="${post.landArea}">
+                            <span class="unit-text">m²</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">생산 지역 <span style="color:red">*</span></label>
+                    <div class="form-input-box">
+                        <div class="input-group">
+                            <input type="text" id="address" name="location" class="form-input"
+                                   th:value="${post.location}" required readonly onclick="execDaumPostcode()"
+                                   style="caret-color: transparent; cursor: pointer; background-color: #fff;">
+                            <button type="button" onclick="execDaumPostcode()" class="btn-green">주소 검색</button>
+                        </div>
+                        <input type="text" name="locationDetail" class="form-input" th:value="${post.locationDetail}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">계약 가능 발전설비 용량 <span style="color:red">*</span></label>
+                    <div class="form-input-box input-group">
+                        <input type="number" name="facilityCapacity" class="form-input" required th:value="${post.facilityCapacity}"
+                               oninput="checkCapacity(this)">
+                        <span class="unit-text">kW</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">계약 유형 <span style="color:red">*</span></label>
+                    <div class="form-input-box radio-group">
+                        <label><input type="checkbox" name="contractTypes" value="REC 구매(현물계약)"
+                                      th:checked="${post.contractType != null and #strings.contains(post.contractType, 'REC 구매(현물계약)')}"> REC 구매(현물계약)</label>
+                        <label><input type="checkbox" name="contractTypes" value="REC 구매(기간계약)"
+                                      th:checked="${post.contractType != null and #strings.contains(post.contractType, 'REC 구매(기간계약)')}"> REC 구매(기간계약)</label>
+                        <label><input type="checkbox" name="contractTypes" value="제3자 PPA"
+                                      th:checked="${post.contractType != null and #strings.contains(post.contractType, '제3자 PPA')}"> 제3자 PPA</label>
+                        <label><input type="checkbox" name="contractTypes" value="직접 PPA"
+                                      th:checked="${post.contractType != null and #strings.contains(post.contractType, '직접 PPA')}"> 직접 PPA</label>
+                        <label><input type="checkbox" name="contractTypes" value="VPPA(SMP+REC 고정가격 계약)"
+                                      th:checked="${post.contractType != null and #strings.contains(post.contractType, 'VPPA')}"> VPPA(SMP+REC 고정가격 계약)</label>
+                        <input type="hidden" name="contractType" id="contractTypeResult">
+                    </div>
+                </div>
+
+                <div class="section-title">계약 정보 (자동 계산)</div>
+
+                <div class="form-row">
+                    <label class="form-label">계약 단위 <span style="color:red">*</span></label>
+                    <div class="form-input-box radio-group">
+                        <label><input type="radio" name="contractUnit" value="kWh" onchange="toggleUnit()"
+                                      th:checked="${post.contractUnit == 'kWh'}"> 발전량(kWh)</label>
+                        <label><input type="radio" name="contractUnit" value="REC" onchange="toggleUnit()"
+                                      th:checked="${post.contractUnit == 'REC'}"> REC(개)</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">전력량 <span style="color:red">*</span></label>
+                    <div class="form-input-box" id="volume-box">
+                        <div class="input-group" id="group-kwh">
+                            <input type="number" id="inputKwh" name="volumeKwh" class="form-input"
+                                   th:value="${post.volumeKwh}" placeholder="전력량 입력" oninput="calcVolume('kWh')">
+                            <span class="unit-text">kWh</span>
+                        </div>
+                        <div class="input-group" id="group-rec">
+                            <input type="number" id="inputRec" name="volumeRec" class="form-input"
+                                   th:value="${post.volumeRec}" placeholder="(REC로 자동변환)" readonly oninput="calcVolume('REC')">
+                            <span class="unit-text">REC</span>
+                        </div>
+                        <p class="helper-text">* 1 REC = 1,000 kWh × 가중치 (소수점 올림)</p>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">계약 희망 구매단가 <span style="color:red">*</span></label>
+                    <div class="form-input-box" id="price-box">
+                        <div class="input-group" id="group-price-kwh">
+                            <input type="number" id="priceKwh" name="priceKrw" class="form-input"
+                                   th:value="${post.contractUnit == 'kWh' ? post.priceKrw : ''}"
+                                   placeholder="단가 입력" oninput="calcPrice('kWh')">
+                            <span class="unit-text">원/kWh</span>
+                        </div>
+                        <div class="input-group" id="group-price-rec">
+                            <input type="number" id="priceRec" class="form-input"
+                                   th:value="${post.contractUnit == 'REC' ? post.priceKrw : ''}"
+                                   placeholder="(자동 변환됨)" readonly oninput="calcPrice('REC')">
+                            <span class="unit-text">원/REC</span>
+                        </div>
+                        <div class="radio-group">
+                            <label><input type="checkbox" name="isPriceNegotiable" th:checked="${post.isPriceNegotiable == 'Y'}"> 협의 가능</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">
+                        가중치 <span style="font-size: 0.8rem; color: #888; font-weight: normal;">(선택 항목)</span>
+                        <div class="tooltip-icon">?
+                            <span class="tooltip-content">가중치에는 0 보다 큰 숫자만 입력 가능하며, 소수점 셋째 자리까지 유효합니다.</span>
+                        </div>
+                    </label>
+                    <div class="form-input-box input-group">
+                        <input type="number" step="0.001" id="weightingFactor" name="weightingFactor" class="form-input"
+                               th:value="${post.weightingFactor}" oninput="checkWeight(this)">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">희망 계약 기간 <span style="color:red">*</span></label>
+                    <div class="form-input-box">
+                        <div class="input-group">
+                            <span style="min-width: 60px;">시작일</span>
+                            <input type="date" name="contractStartDate" class="form-input" th:value="${post.contractStartDate}">
+                        </div>
+                        <div class="input-group">
+                            <span style="min-width: 60px;">종료일</span>
+                            <input type="date" name="contractEndDate" class="form-input" th:value="${post.contractEndDate}">
+                        </div>
+                        <div class="radio-group">
+                            <label><input type="checkbox" name="isPeriodNegotiable" th:checked="${post.isPeriodNegotiable == 'Y'}"> 협의 가능</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">상세 설명</label>
+                    <div class="form-input-box">
+                        <textarea name="content" class="form-input" rows="5" th:text="${post.content}"></textarea>
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <a th:href="@{/seller/sellerpost}" style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 4px; color: #333; text-decoration: none; margin-right: 10px;">취소</a>
+                    <button type="submit" class="btn-green">수정 완료</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+    function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                var addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+                document.getElementById("address").value = addr;
+            }
+        }).open();
+    }
+
+    function prepareFormData() {
+        const checkboxes = document.querySelectorAll('input[name="contractTypes"]:checked');
+        const values = Array.from(checkboxes).map(cb => cb.value);
+        document.getElementById('contractTypeResult').value = values.join(',');
+    }
+
+    // ==========================================
+    //  🛡️ 유효성 검사 로직
+    // ==========================================
+
+    function checkCapacity(el) {
+        if (el.value.length > 9) {
+            alert('계약 희망 발전설비 용량은 9자리 이하로 입력해주세요.');
+            el.value = el.value.slice(0, 9);
+        }
+    }
+
+    function checkWeight(el) {
+        if (el.value.indexOf('.') !== -1) {
+            var parts = el.value.split('.');
+            if (parts[1].length > 3) {
+                alert('가중치는 소수점 셋째 자리까지만 입력 가능합니다.');
+                el.value = parseFloat(el.value).toFixed(3);
+            }
+        }
+        reCalcAll(); // 값 변경 후 재계산
+    }
+
+    // ==========================================
+    //  ⚡ 자동 계산 및 위치 변경 로직
+    // ==========================================
+
+    window.onload = function() {
+        toggleUnit(); // 읽기 전용 모드 및 위치 설정
+        reCalcAll();  // 저장된 값을 기준으로 나머지 빈칸 채우기
+    }
+
+    function toggleUnit() {
+        const unit = document.querySelector('input[name="contractUnit"]:checked').value;
+
+        // 박스(컨테이너)
+        const volumeBox = document.getElementById('volume-box');
+        const priceBox = document.getElementById('price-box');
+
+        // 그룹(줄)
+        const groupKwh = document.getElementById('group-kwh');
+        const groupRec = document.getElementById('group-rec');
+        const groupPriceKwh = document.getElementById('group-price-kwh');
+        const groupPriceRec = document.getElementById('group-price-rec');
+
+        // 입력창
+        const inputKwh = document.getElementById('inputKwh');
+        const inputRec = document.getElementById('inputRec');
+        const priceKwh = document.getElementById('priceKwh');
+        const priceRec = document.getElementById('priceRec');
+
+        if (unit === 'kWh') {
+            // [위치 변경] kWh 위, REC 아래
+            volumeBox.insertBefore(groupKwh, groupRec);
+            priceBox.insertBefore(groupPriceKwh, groupPriceRec);
+
+            // [상태 변경]
+            inputKwh.readOnly = false; inputKwh.required = true;
+            inputRec.readOnly = true; inputRec.required = false;
+
+            priceKwh.readOnly = false;
+            priceRec.readOnly = true;
+        } else {
+            // [위치 변경] REC 위, kWh 아래
+            volumeBox.insertBefore(groupRec, groupKwh);
+            priceBox.insertBefore(groupPriceRec, groupPriceKwh);
+
+            // [상태 변경]
+            inputKwh.readOnly = true; inputKwh.required = false;
+            inputRec.readOnly = false; inputRec.required = true;
+
+            priceKwh.readOnly = true;
+            priceRec.readOnly = false;
+        }
+    }
+
+    function calcVolume(source) {
+        const weight = parseFloat(document.getElementById('weightingFactor').value) || 1.0;
+        const kwhInput = document.getElementById('inputKwh');
+        const recInput = document.getElementById('inputRec');
+
+        if (source === 'kWh') {
+            let kwh = parseFloat(kwhInput.value) || 0;
+            if (kwh > 100000000) {
+                alert('전력량은 100,000,000 이상 입력할 수 없습니다.');
+                kwhInput.value = 100000000;
+                kwh = 100000000;
+            }
+            const rec = (kwh / 1000) * weight;
+            recInput.value = Math.floor(rec);
+        } else {
+            const rec = parseFloat(recInput.value) || 0;
+            const kwh = (rec / weight) * 1000;
+            if (kwh > 100000000) {
+                alert('전력량(환산값)이 100,000,000을 초과합니다.');
+            }
+            kwhInput.value = Math.round(kwh);
+        }
+    }
+
+    function calcPrice(source) {
+        const weight = parseFloat(document.getElementById('weightingFactor').value) || 1.0;
+        const priceKwhInput = document.getElementById('priceKwh');
+        const priceRecInput = document.getElementById('priceRec');
+
+        if (source === 'kWh') {
+            const pKwh = parseFloat(priceKwhInput.value) || 0;
+            let pRec = (pKwh * 1000) / weight;
+            pRec = Math.round(pRec);
+
+            if (pRec > 999999) {
+                alert('원/REC 변환값이 최대값(999,999원)을 초과합니다.');
+                priceKwhInput.value = '';
+                priceRecInput.value = '';
+                return;
+            }
+            priceRecInput.value = pRec;
+        } else {
+            let pRec = parseFloat(priceRecInput.value) || 0;
+            if (pRec > 999999) {
+                alert('원/REC는 최대값 999,999를 초과할 수 없습니다.');
+                priceRecInput.value = 999999;
+                pRec = 999999;
+            }
+            const pKwh = (pRec * weight) / 1000;
+            priceKwhInput.value = Math.round(pKwh);
+        }
+    }
+
+    function reCalcAll() {
+        const unit = document.querySelector('input[name="contractUnit"]:checked').value;
+        calcVolume(unit);
+        calcPrice(unit);
+    }
+</script>
+
+</body>
+</html>

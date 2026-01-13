@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>대항에너지 홈</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* 대문 페이지 전용 스타일 */
+        .landing-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            margin-left: 0; /* 사이드바 공간 제거 */
+        }
+        .nav-card-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 50px;
+        }
+        .nav-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            color: white;
+        }
+        .nav-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .nav-card h2 { margin: 0 0 15px 0; font-size: 1.8rem; color: #38bdf8; }
+        .nav-card p { font-size: 1rem; color: #cbd5e1; line-height: 1.6; }
+        .emoji-icon { font-size: 4rem; display: block; margin-bottom: 20px; }
+    </style>
+</head>
+<body style="display: block;"> <div class="landing-container">
+    <h1 style="font-size: 3rem; margin-bottom: 10px;">DAEHANG ENERGY</h1>
+    <p style="font-size: 1.2rem; color: #94a3b8;">신재생 에너지 거래 플랫폼에 오신 것을 환영합니다.</p>
+
+    <div class="nav-card-container">
+        <a th:href="@{/seller/mypage}" class="nav-card">
+            <span class="emoji-icon">🏠</span>
+            <h2>마이 페이지</h2>
+            <p>나의 판매 현황, 수익 통계,<br>구매 요청을 관리하는<br>개인 대시보드입니다.</p>
+        </a>
+
+        <a th:href="@{/seller/market}" class="nav-card">
+            <span class="emoji-icon">🛒</span>
+            <h2>판매 게시판</h2>
+            <p>전국의 다양한 에너지 매물을<br>살펴보고 거래할 수 있는<br>공용 장터입니다.</p>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
