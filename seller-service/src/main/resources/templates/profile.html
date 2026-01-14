@@ -185,6 +185,33 @@
         var modal = document.getElementById('managerModal');
         if (event.target == modal) { closeManagerModal(); }
     }
+
+    // [추가] 폼 제출 시 전화번호 합치기
+    document.querySelector('form[action="/seller/manager/add"]').addEventListener('submit', function(e) {
+        var prefix = document.getElementById('phonePrefix').value;
+        var body = document.getElementById('phoneBody').value;
+
+        // 뒷자리에 하이픈(-)이 없으면 자동으로 넣어주거나, 사용자가 입력한 그대로 합침
+        // 예: prefix(010) + "-" + body(1234-5678)
+        // 만약 사용자가 하이픈 없이 12345678만 쳤다면 여기서 처리가 필요할 수 있습니다.
+        // 여기서는 간단하게 중간 하이픈을 강제로 넣어서 합쳐줍니다.
+
+        var fullPhone = "";
+
+        // 사용자가 이미 하이픈을 넣었는지 확인
+        if(body.includes("-")) {
+            fullPhone = prefix + "-" + body;
+        } else {
+            // 하이픈 없이 숫자만 쳤을 경우 (예: 12345678) -> 010-1234-5678로 변환 시도
+            if(body.length === 8) {
+                fullPhone = prefix + "-" + body.substring(0, 4) + "-" + body.substring(4);
+            } else {
+                fullPhone = prefix + "-" + body; // 그냥 합침
+            }
+        }
+
+        document.getElementById('combinedPhone').value = fullPhone;
+    });
 </script>
 </body>
 </html>
