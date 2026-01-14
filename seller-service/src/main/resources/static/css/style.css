@@ -210,3 +210,17 @@ table td {
     border: 1px solid #ef4444;
 }
 .btn-del:hover { background-color: #fee2e2; }
+
+
+/* [추가] 연락처 입력폼 스타일 */
+.phone-group {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 입력창 사이 간격 */
+}
+.phone-prefix {
+    width: 30%; /* 앞자리 선택 박스 너비 */
+}
+.phone-body {
+    width: 70%; /* 뒷자리 입력 박스 너비 */
+}
