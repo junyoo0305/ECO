@@ -2,8 +2,10 @@ package com.example.seller.mypage.controller;
 
 import com.example.seller.mypage.dto.CorporateMemberResponseDto;
 import com.example.seller.mypage.dto.PasswordUpdateDto;
+import com.example.seller.mypage.model.CorporateMember;
 import com.example.seller.mypage.model.SubManager;
 import com.example.seller.mypage.service.SellerMyPageService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,7 +39,7 @@ public class SellerMyPageController {
         return "profile"; // [수정] templates/profile.html 을 열어라!
     }
 
-    // 2. 담당자 추가
+    // 담당자 추가
     @PostMapping("/seller/manager/add")
     public String addManager(@RequestParam("managerName") String name,
                              @RequestParam String email,
@@ -46,23 +48,36 @@ public class SellerMyPageController {
         Long fixedSellerId = 1L; // 로그인 기능 추가시 교체
         sellerMyPageService.addManager(fixedSellerId, name, email, department, phone);
 
-        return "redirect:/seller/profile"; // [수정] 완료 후 프로필 페이지로 복귀
+        return "redirect:/seller/profile"; // 완료 후 프로필 페이지로 복귀
     }
 
-    // 3. 담당자 삭제
+    // 담당자 수정
+    @PostMapping("/seller/manager/update/{id}")
+    public String updateManager(@PathVariable Long id,
+                                @RequestParam String managerName,
+                                @RequestParam String department,
+                                @RequestParam String phone,
+                                @RequestParam String email) {
+        sellerMyPageService.updateManager(id, managerName, email, department, phone);
+
+        return "redirect:/seller/profile"; // 완료 후 다시 프로필 페이지로 복귀
+    }
+
+    // 담당자 삭제
     @PostMapping("/seller/manager/delete/{id}")
     public String deleteManager(@PathVariable Long id) {
         sellerMyPageService.deleteManager(id);
 
-        return "redirect:/seller/profile"; // [수정] 완료 후 프로필 페이지로 복귀
+        return "redirect:/seller/profile"; // 완료 후 프로필 페이지로 복귀
     }
 
+    // 비밀번호 변경 페이지
     @GetMapping("/seller/passwordUpdate")
     public String passwordUpdatePage() {
         return "passwordUpdate"; // templates/passwordUpdate.html
     }
 
-    // 4. 비밀번호 변경 요청 처리
+    // 비밀번호 변경 요청 처리
     @PostMapping("/seller/updatePassword") // 1. HTML의 action 주소와 일치시킴
     public String updatePassword(PasswordUpdateDto dto, RedirectAttributes redirectAttributes) {
         Long mockSellerId = 1L;
@@ -81,5 +96,38 @@ public class SellerMyPageController {
             redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/seller/passwordUpdate";
         }
+    }
+
+//    // 회원 탈퇴 처리 (세션)
+//    @PostMapping("/withdraw")
+//    public String withdraw(HttpSession session) {
+//        // 1. 현재 로그인된 사용자 정보 가져오기
+//        CorporateMember loginMember = (CorporateMember) session.getAttribute("loginMember");
+//
+//        if (loginMember != null) {
+//            // 2. 서비스 호출 (DB에서 삭제)
+//            sellerMyPageService.withdrawSeller(loginMember.getId());
+//
+//            // 3. 세션 종료 (로그아웃)
+//            session.invalidate();
+//        }
+//
+//        // 4. 메인 페이지로 이동
+//        return "redirect:/";
+//    }
+
+    // 회원 탈퇴 처리 (테스트용: ID 1번 고정)
+    @PostMapping("/seller/withdraw")
+    public String withdraw() {
+        // [테스트 모드] 로그인 기능 구현 전이므로 1번 회원으로 고정
+        Long fixedSellerId = 1L;
+
+        // 서비스 호출 (DB에서 삭제)
+        sellerMyPageService.withdrawSeller(fixedSellerId);
+
+        // 로그아웃(session.invalidate)은 세션이 없으므로 생략
+
+        // 메인 페이지로 이동
+        return "redirect:/market/marketpost";
     }
 }

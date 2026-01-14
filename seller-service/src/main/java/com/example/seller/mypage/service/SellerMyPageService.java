@@ -95,6 +95,20 @@ public class SellerMyPageService {
         subManagerRepository.save(manager);
     }
 
+    // 담당자 수정
+    @Transactional
+    public void updateManager(Long subManagerId, String name, String email, String dept, String phone) {
+        // 수정할 대상 찾기
+        SubManager manager = subManagerRepository.findById(subManagerId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 담당자입니다."));
+        // 정보 덮어쓰기 (Entity에 @Setter가 있어야 합니다)
+        manager.setManagerName(name);
+        manager.setDepartment(dept);
+        manager.setPhone(phone);
+        manager.setEmail(email);
+        // 따로 save()를 호출하지 않아도, @Transactional이 있으면 자동으로 Update 됩니다.
+    }
+
     // 담당자 삭제 (Soft Delete)
     @Transactional
     public void deleteManager(Long subManagerId) {
@@ -102,5 +116,15 @@ public class SellerMyPageService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 담당자입니다."));
 
         manager.setDelYn("Y"); // 상태만 변경
+    }
+
+    // 회원탈퇴
+    @Transactional
+    public void withdrawSeller(Long sellerId) {
+        // 존재 여부 확인 (없으면 에러)
+        if (!corporateMemberRepository.existsById(sellerId)) {
+            throw new IllegalArgumentException("회원 정보가 없습니다.");
+        }
+        corporateMemberRepository.deleteById(sellerId);
     }
 }

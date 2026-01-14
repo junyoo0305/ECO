@@ -39,6 +39,19 @@
         /* 알림 메시지 */
         .alert { padding: 12px; margin-bottom: 20px; border-radius: 6px; text-align: center; font-size: 0.9rem; }
         .alert-success { background-color: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
+
+        /* 연락처 그룹 스타일 */
+        .phone-group {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* 입력창 사이 간격 */
+        }
+        .phone-prefix {
+            width: 30%; /* 앞자리 선택 박스 너비 */
+        }
+        .phone-body {
+            width: 70%; /* 뒷자리 입력 박스 너비 */
+        }
     </style>
 </head>
 <body>
@@ -103,7 +116,7 @@
                     <th>부서/직책</th>
                     <th>연락처</th>
                     <th>이메일</th>
-                    <th style="width: 80px; text-align: center;">관리</th>
+                    <th style="width: 140px; text-align: center;">관리</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -112,7 +125,11 @@
                     <td th:text="${mgr.department}">영업팀</td>
                     <td th:text="${mgr.phone}">010-1234-5678</td>
                     <td th:text="${mgr.email}">kim@company.com</td>
-                    <td style="text-align: center;">
+                    <td style="text-align: center; display: flex; justify-content: center; gap: 5px;">
+                        <button type="button" class="btn-action btn-edit"
+                                th:onclick="openEditModal( [[${mgr.subManagerId}]], [[${mgr.managerName}]], [[${mgr.department}]], [[${mgr.phone}]], [[${mgr.email}]] )">
+                            수정
+                        </button>
                         <form th:action="@{/seller/manager/delete/{id}(id=${mgr.subManagerId})}" method="post"
                               onsubmit="return confirm('정말 삭제하시겠습니까?');">
                             <button type="submit" class="btn-action btn-del">삭제</button>
@@ -132,13 +149,25 @@
             </button>
         </div>
 
+        <div style="margin-top: 50px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+            <span style="font-size: 0.9rem; color: #94a3b8; margin-right: 10px;">더 이상 서비스를 이용하지 않으시나요?</span>
+            <form action="/seller/withdraw" method="post" style="display: inline-block;"
+                  onsubmit="return confirm('정말 탈퇴하시겠습니까?\n탈퇴 후에는 계정을 복구할 수 없습니다.');">
+                <button type="submit" style="background: none; border: none; color: #ef4444; text-decoration: underline; cursor: pointer; font-size: 0.9rem;">
+                    회원 탈퇴
+                </button>
+            </form>
+        </div>
+
     </main>
 </div>
 
 <div id="managerModal" class="modal-overlay">
     <div class="modal-window">
-        <div class="modal-header">새 담당자 등록</div>
-        <form action="/seller/manager/add" method="post">
+        <div class="modal-header" id="modalTitle">새 담당자 등록</div>
+
+        <form id="managerForm" action="/seller/manager/add" method="post" onsubmit="return combinePhone()">
+
             <div class="form-group">
                 <label>이름</label>
                 <input type="text" name="managerName" class="form-input" placeholder="예: 박대리" required>
@@ -147,6 +176,7 @@
                 <label>부서 및 직책</label>
                 <input type="text" name="department" class="form-input" placeholder="예: 영업팀 대리" required>
             </div>
+
             <div class="form-group">
                 <label>연락처</label>
                 <div class="phone-group">
@@ -162,9 +192,9 @@
                     <input type="text" id="phoneBody" class="form-input phone-body"
                            placeholder="1234-5678" maxlength="9" required>
                 </div>
-
                 <input type="hidden" name="phone" id="combinedPhone">
             </div>
+
             <div class="form-group">
                 <label>이메일</label>
                 <input type="email" name="email" class="form-input" placeholder="example@email.com" required>
@@ -172,46 +202,97 @@
 
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeManagerModal()">취소</button>
-                <button type="submit" class="btn-submit-modal">등록하기</button>
+                <button type="submit" class="btn-submit-modal" id="modalSubmitBtn">등록하기</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    function openManagerModal() { document.getElementById('managerModal').style.display = 'flex'; }
-    function closeManagerModal() { document.getElementById('managerModal').style.display = 'none'; }
-    window.onclick = function(event) {
-        var modal = document.getElementById('managerModal');
-        if (event.target == modal) { closeManagerModal(); }
+    // 모달 닫기
+    function closeManagerModal() {
+        document.getElementById('managerModal').style.display = 'none';
     }
 
-    // [추가] 폼 제출 시 전화번호 합치기
-    document.querySelector('form[action="/seller/manager/add"]').addEventListener('submit', function(e) {
+    // 모달 열기
+    function openManagerModal() {
+        // 폼 리셋
+        document.getElementById('managerForm').reset();
+
+        // ID가 managerForm인 것을 사용해야 함
+        document.getElementById('managerForm').action = "/seller/manager/add";
+        document.getElementById('modalTitle').innerText = "새 담당자 등록";
+        document.getElementById('modalSubmitBtn').innerText = "등록하기";
+
+        document.getElementById('managerModal').style.display = 'flex';
+    }
+
+    // 모달 열기
+    function openEditModal(id, name, dept, phone, email) {
+        // 기존 값 채워넣기
+        document.getElementsByName('managerName')[0].value = name;
+        document.getElementsByName('department')[0].value = dept;
+        document.getElementsByName('email')[0].value = email;
+
+        // 전화번호 분리 로직 (010-1234-5678 -> 010 과 1234-5678)
+        if (phone) {
+            if (phone.includes("-")) {
+                var parts = phone.split("-");
+                document.getElementById('phonePrefix').value = parts[0];
+
+                // 나머지가 2부분이면 1234-5678, 아니면 그냥 넣음
+                if (parts.length >= 3) {
+                    document.getElementById('phoneBody').value = parts[1] + "-" + parts[2];
+                } else {
+                    document.getElementById('phoneBody').value = parts[1];
+                }
+            } else {
+                // 하이픈 없는 경우
+                document.getElementById('phoneBody').value = phone;
+            }
+        }
+
+        // 수정 모드로 변경
+        const form = document.getElementById('managerForm');
+        form.action = "/seller/manager/update/" + id; // 컨트롤러에 Update 메서드 필요
+
+        document.getElementById('modalTitle').innerText = "담당자 정보 수정";
+        document.getElementById('modalSubmitBtn').innerText = "수정하기";
+
+        document.getElementById('managerModal').style.display = 'flex';
+    }
+
+    // 전송 전 전화번호 합치기
+    function combinePhone() {
         var prefix = document.getElementById('phonePrefix').value;
         var body = document.getElementById('phoneBody').value;
 
-        // 뒷자리에 하이픈(-)이 없으면 자동으로 넣어주거나, 사용자가 입력한 그대로 합침
-        // 예: prefix(010) + "-" + body(1234-5678)
-        // 만약 사용자가 하이픈 없이 12345678만 쳤다면 여기서 처리가 필요할 수 있습니다.
-        // 여기서는 간단하게 중간 하이픈을 강제로 넣어서 합쳐줍니다.
+        if (!body) {
+            alert("연락처를 입력해주세요.");
+            return false;
+        }
 
         var fullPhone = "";
 
-        // 사용자가 이미 하이픈을 넣었는지 확인
         if(body.includes("-")) {
             fullPhone = prefix + "-" + body;
         } else {
-            // 하이픈 없이 숫자만 쳤을 경우 (예: 12345678) -> 010-1234-5678로 변환 시도
-            if(body.length === 8) {
+            if(body.length >= 8) {
                 fullPhone = prefix + "-" + body.substring(0, 4) + "-" + body.substring(4);
             } else {
-                fullPhone = prefix + "-" + body; // 그냥 합침
+                fullPhone = prefix + "-" + body;
             }
         }
 
         document.getElementById('combinedPhone').value = fullPhone;
-    });
+        return true;
+    }
+
+    // 모달 배경 클릭 시 닫기
+    window.onclick = function(event) {
+        var modal = document.getElementById('managerModal');
+        if (event.target == modal) { closeManagerModal(); }
+    }
 </script>
 </body>
 </html>
