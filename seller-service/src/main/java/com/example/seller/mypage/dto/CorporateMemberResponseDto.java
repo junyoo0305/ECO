@@ -1,6 +1,6 @@
 package com.example.seller.mypage.dto;
 
-import com.example.seller.mypage.model.CorporateMember;
+import com.example.seller.mypage.model.User; // [중요] User 엔티티 import 확인 필요
 import lombok.Builder;
 import lombok.Data;
 
@@ -20,8 +20,8 @@ public class CorporateMemberResponseDto {
     private String sellBmNum;     // 담당자 연락처
     private String sellBmDep;     // 담당자 부서
 
-    // Entity -> DTO 변환
-    public static CorporateMemberResponseDto fromEntity(CorporateMember entity) {
+    // [수정] User 엔티티를 받아서 DTO로 변환
+    public static CorporateMemberResponseDto fromEntity(User entity) {
         return CorporateMemberResponseDto.builder()
                 .sellComName(entity.getSellComName())
                 .sellRegNum(entity.getSellRegNum())

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -17,24 +18,22 @@ public class SellerPostController {
 
     private final SellerPostService sellerPostService;
 
-    // 판매자 센터 대문
-    @GetMapping("/index")
-    public String index() {
-        return "index";
-    }
-
-    // 내 판매글 관리 목록 조회
+    // [수정] 내 판매글 관리 목록 조회
     @GetMapping("/sellerpost")
-    public String sellerPostPage(Model model) {
-        // 👇 게이트웨이가 검증해서 헤더에 넣어준 ID를 바로 꺼내 씀
-//        @RequestHeader("X-Seller-Id") Long sellerId,
-//        Model model) {
-        Long mockSellerId = 1L; // 로그인 기능 추가시 교체
-        List<SalesPostResponseDto> posts = sellerPostService.getPostsBySellerId(mockSellerId);
+    public String sellerPostPage(
+            Model model,
+            // [추가] 게이트웨이에서 넘겨준 문자열 ID를 받습니다.
+            @RequestHeader(value = "X-USER-ID", required = false) String userId
+    ) {
+        // [안전장치] 로컬 테스트 등 헤더가 없을 땐 테스트 계정 ID 사용
+        if (userId == null) {
+            userId = "testUser"; // 테스트용 문자열 ID (DB에 실제 존재하는 ID여야 함)
+        }
+
+        // [변경] 서비스로 문자열 ID를 넘깁니다. (기존 getPostsBySellerId 대신 호출)
+        List<SalesPostResponseDto> posts = sellerPostService.getPostsBySellComId(userId);
 
         model.addAttribute("posts", posts);
         return "sellerpost";
-        // 주의: html에서 '수정' 버튼의 링크는 마켓 서버(예: /market/edit/{id})로 걸어야 합니다.
     }
-
 }

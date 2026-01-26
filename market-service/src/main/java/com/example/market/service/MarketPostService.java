@@ -5,8 +5,10 @@ import com.example.market.dto.MarketPostResponseDto;
 import com.example.market.dto.MarketPostSearchDto;
 import com.example.market.model.MarketPost;
 import com.example.market.model.PostFile;
+import com.example.market.model.User;
 import com.example.market.repository.MarketPostRepository;
 import com.example.market.repository.PostFileRepository;
+import com.example.market.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,7 @@ public class MarketPostService {
 
     private final MarketPostRepository marketPostRepository;
     private final PostFileRepository postFileRepository;
+    private final UserRepository userRepository;
 
     private final String uploadPath = "C:/eco_images/";
 
@@ -66,14 +69,17 @@ public class MarketPostService {
         return MarketPostResponseDto.fromEntity(post);
     }
 
-    // 3. 게시글 등록
+    // [수정] 3. 게시글 등록
     @Transactional
-    public void createPost(MarketPostRequestDto dto) {
-        Long mockSellerId = 1L; // 임시 ID
+    public void createPost(MarketPostRequestDto dto, String userId) { // String으로 변경
 
-        // (1) 게시글 먼저 저장 (ID 생성을 위해)
-        // toEntity에서 imageUrl 파라미터가 제거되었습니다.
-        MarketPost marketPost = dto.toEntity(mockSellerId);
+        // 1. 문자열 ID("solar123")로 회원 찾기 -> 숫자 ID(1L) 꺼내기
+        User member = userRepository.findBySellComId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다. ID: " + userId));
+        Long realWriterId = member.getId(); // 진짜 PK값
+
+        // 2. 찾아낸 숫자 ID로 게시글 저장
+        MarketPost marketPost = dto.toEntity(realWriterId);
         MarketPost savedPost = marketPostRepository.save(marketPost);
 
         // (2) 파일이 있다면 저장 후 PostFile 테이블에 등록
@@ -83,26 +89,32 @@ public class MarketPostService {
         }
     }
 
-    // 4. 게시글 수정
+    // [수정] 4. 게시글 수정
     @Transactional
-    public void updatePost(Long postId, MarketPostRequestDto dto) {
+    public void updatePost(Long postId, String userId, MarketPostRequestDto dto) {
         MarketPost post = marketPostRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
 
-        // 새 이미지가 업로드되었다면?
+        // 1. 본인 확인을 위해 요청자의 숫자 ID 찾기
+        User member = userRepository.findBySellComId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        Long requestUserId = member.getId();
+
+        // 2. 작성자 ID(Long)와 요청자 ID(Long) 비교
+        if (!post.getSellerId().equals(requestUserId)) {
+            throw new IllegalArgumentException("수정 권한이 없습니다.");
+        }
+
+        // --- 이하 기존 수정 로직 그대로 ---
         MultipartFile file = dto.getImageFile();
         if (file != null && !file.isEmpty()) {
-
-            // 기존 파일들을 모두 '삭제(Y)' 처리
-            // post.getFiles()로 연결된 파일 목록을 가져와서 하나씩 상태를 변경합니다.
             List<PostFile> oldFiles = post.getFiles();
             for (PostFile oldFile : oldFiles) {
-                oldFile.delete(); // 여기서 엔티티의 delYn이 "Y"로 바뀝니다.
+                oldFile.delete();
             }
-            // 새 파일 저장
             savePostFile(postId, file);
         }
-        // 게시글 내용 업데이트
+
         post.update(
                 dto.getTitle(), dto.getEnergyType(), dto.getLandType(), dto.getLandArea(),
                 dto.getLocation(), dto.getLocationDetail(), dto.getFacilityCapacity(),
@@ -113,6 +125,23 @@ public class MarketPostService {
                 "on".equals(dto.getIsPeriodNegotiable()) ? "Y" : "N",
                 dto.getContent()
         );
+    }
+
+    // [수정] 삭제
+    @Transactional
+    public void deletePost(Long postId, String userId) {
+        MarketPost post = marketPostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+
+        // 1. 본인 확인
+        User member = userRepository.findBySellComId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+
+        if (!post.getSellerId().equals(member.getId())) {
+            throw new IllegalArgumentException("삭제 권한이 없습니다.");
+        }
+
+        post.delete();
     }
 
     // [공통] 파일 저장 로직 분리
@@ -140,14 +169,6 @@ public class MarketPostService {
             e.printStackTrace();
             throw new RuntimeException("파일 저장 실패"); // 트랜잭션 롤백을 위해 런타임 예외 발생
         }
-    }
-
-    @Transactional
-    public void deletePost(Long postId) {
-        MarketPost post = marketPostRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다. id=" + postId));
-
-        post.delete(); // delYn = "Y"로 변경 (Soft Delete)
     }
 
     // [추가] 판매 상태 변경 (판매중 <-> 판매종료)

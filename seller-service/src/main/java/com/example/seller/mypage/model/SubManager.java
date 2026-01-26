@@ -16,8 +16,9 @@ public class SubManager {
     @Column(name = "SUB_MANAGER_ID")
     private Long subManagerId;
 
-    @Column(name = "SELLER_ID", nullable = false)
-    private Long sellerId;
+    // [수정] SELLER_ID -> USER_ID (통합 테이블 참조)
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @Column(name = "MANAGER_NAME", nullable = false, length = 50)
     private String managerName;
@@ -32,6 +33,6 @@ public class SubManager {
     private String department;
 
     @Column(name = "DEL_YN", nullable = false, length = 1)
-    @Builder.Default // 빌더 패턴 사용 시 기본값 적용
-    private String delYn = "N"; // 기본값 'N'
+    @Builder.Default
+    private String delYn = "N";
 }

@@ -2,17 +2,13 @@ package com.example.seller.mypage.controller;
 
 import com.example.seller.mypage.dto.CorporateMemberResponseDto;
 import com.example.seller.mypage.dto.PasswordUpdateDto;
-import com.example.seller.mypage.model.CorporateMember;
 import com.example.seller.mypage.model.SubManager;
+import com.example.seller.mypage.repository.UserRepository;
 import com.example.seller.mypage.service.SellerMyPageService;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -22,112 +18,106 @@ import java.util.List;
 public class SellerMyPageController {
 
     private final SellerMyPageService sellerMyPageService;
+    private final UserRepository corporateMemberRepository;
 
-    // 1. 프로필 페이지 (URL도 profile로 맞춤)
     @GetMapping("/seller/profile")
-    public String profile(Model model) {
-        Long fixedSellerId = 1L; // 로그인 기능 추가시 교체
+    public String profile(Model model, @RequestHeader(value = "X-USER-ID", required = false) String sellComId) {
 
-        // 서비스에서 정보 가져와서 화면에 전달
-        CorporateMemberResponseDto myInfo = sellerMyPageService.getMyInfo(fixedSellerId);
+        // 1. 게이트웨이를 거치지 않고 직접 접속했을 경우를 대비해 예외 처리 (선택사항)
+        if (sellComId == null) {
+            return "redirect:/login"; // 혹은 에러 페이지
+        }
+
+        // 2. 서비스 호출 (이제 'user123' 같은 문자열 아이디를 넘깁니다)
+        // 서비스 내부에서 이 ID로 DB를 조회해서 정보를 가져오게 됩니다.
+        CorporateMemberResponseDto myInfo = sellerMyPageService.getMyInfo(sellComId);
         model.addAttribute("info", myInfo);
 
-        // 담당자 목록 조회
-        List<SubManager> managers = sellerMyPageService.getManagers(fixedSellerId);
+        // 3. 담당자 목록 조회
+        List<SubManager> managers = sellerMyPageService.getManagers(sellComId);
         model.addAttribute("managers", managers);
 
-        return "profile"; // [수정] templates/profile.html 을 열어라!
+        return "profile";
     }
 
     // 담당자 추가
     @PostMapping("/seller/manager/add")
-    public String addManager(@RequestParam("managerName") String name,
+    public String addManager(@RequestHeader("X-USER-ID") String sellComId,
+                             @RequestParam("managerName") String name,
                              @RequestParam String email,
                              @RequestParam String department,
                              @RequestParam String phone) {
-        Long fixedSellerId = 1L; // 로그인 기능 추가시 교체
-        sellerMyPageService.addManager(fixedSellerId, name, email, department, phone);
 
-        return "redirect:/seller/profile"; // 완료 후 프로필 페이지로 복귀
+        // 기존: Long fixedSellerId = 1L;
+        // 변경: 헤더에서 받은 String ID를 서비스로 전달
+        sellerMyPageService.addManager(sellComId, name, email, department, phone);
+
+        return "redirect:/seller/profile";
     }
 
     // 담당자 수정
     @PostMapping("/seller/manager/update/{id}")
-    public String updateManager(@PathVariable Long id,
+    public String updateManager(@RequestHeader("X-USER-ID") String sellComId,
+                                @PathVariable Long id,
                                 @RequestParam String managerName,
                                 @RequestParam String department,
                                 @RequestParam String phone,
                                 @RequestParam String email) {
-        sellerMyPageService.updateManager(id, managerName, email, department, phone);
 
-        return "redirect:/seller/profile"; // 완료 후 다시 프로필 페이지로 복귀
+        // (권장) 판매자 ID도 같이 넘겨서, 이 담당자가 내 담당자가 맞는지 검증하면 더 안전합니다.
+        sellerMyPageService.updateManager(sellComId, id, managerName, email, department, phone);
+
+        return "redirect:/seller/profile";
     }
 
     // 담당자 삭제
     @PostMapping("/seller/manager/delete/{id}")
-    public String deleteManager(@PathVariable Long id) {
-        sellerMyPageService.deleteManager(id);
+    public String deleteManager(@RequestHeader("X-USER-ID") String sellComId,
+                                @PathVariable Long id) {
 
-        return "redirect:/seller/profile"; // 완료 후 프로필 페이지로 복귀
+        // (권장) 역시 판매자 ID를 넘겨 소유권 확인 후 삭제
+        sellerMyPageService.deleteManager(sellComId, id);
+
+        return "redirect:/seller/profile";
     }
 
     // 비밀번호 변경 페이지
     @GetMapping("/seller/passwordUpdate")
     public String passwordUpdatePage() {
-        return "passwordUpdate"; // templates/passwordUpdate.html
+        return "passwordUpdate";
     }
 
     // 비밀번호 변경 요청 처리
-    @PostMapping("/seller/updatePassword") // 1. HTML의 action 주소와 일치시킴
-    public String updatePassword(PasswordUpdateDto dto, RedirectAttributes redirectAttributes) {
-        Long mockSellerId = 1L;
-
+    @PostMapping("/seller/updatePassword")
+    public String updatePassword(@RequestHeader("X-USER-ID") String sellComId,
+                                 PasswordUpdateDto dto,
+                                 RedirectAttributes redirectAttributes) {
         try {
-            sellerMyPageService.changePassword(mockSellerId, dto);
+            // 기존: Long mockSellerId = 1L;
+            // 변경: sellComId 전달
+            sellerMyPageService.changePassword(sellComId, dto);
 
-            // 성공 시: 메시지 담고 '프로필'로 이동
             redirectAttributes.addFlashAttribute("msg", "비밀번호가 성공적으로 변경되었습니다.");
             return "redirect:/seller/profile";
 
         } catch (IllegalArgumentException e) {
-
-            // 실패 시: 에러 메시지 담고 '비밀번호 변경 페이지'로 복귀
-            // (errorMsg)
             redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/seller/passwordUpdate";
         }
     }
 
-//    // 회원 탈퇴 처리 (세션)
-//    @PostMapping("/withdraw")
-//    public String withdraw(HttpSession session) {
-//        // 1. 현재 로그인된 사용자 정보 가져오기
-//        CorporateMember loginMember = (CorporateMember) session.getAttribute("loginMember");
-//
-//        if (loginMember != null) {
-//            // 2. 서비스 호출 (DB에서 삭제)
-//            sellerMyPageService.withdrawSeller(loginMember.getId());
-//
-//            // 3. 세션 종료 (로그아웃)
-//            session.invalidate();
-//        }
-//
-//        // 4. 메인 페이지로 이동
-//        return "redirect:/";
-//    }
-
-    // 회원 탈퇴 처리 (테스트용: ID 1번 고정)
+    // 회원 탈퇴 처리
     @PostMapping("/seller/withdraw")
-    public String withdraw() {
-        // [테스트 모드] 로그인 기능 구현 전이므로 1번 회원으로 고정
-        Long fixedSellerId = 1L;
+    public String withdraw(@RequestHeader("X-USER-ID") String sellComId) {
 
-        // 서비스 호출 (DB에서 삭제)
-        sellerMyPageService.withdrawSeller(fixedSellerId);
+        // 기존: Long fixedSellerId = 1L;
+        // 변경: sellComId 전달
+        sellerMyPageService.withdrawSeller(sellComId);
 
-        // 로그아웃(session.invalidate)은 세션이 없으므로 생략
+        // 로그아웃 처리는 클라이언트(브라우저)에서 토큰을 삭제해야 하므로
+        // 여기서는 리다이렉트만 하고 프론트에서 처리하거나,
+        // 필요 시 쿠키 삭제 로직 등을 추가할 수 있습니다.
 
-        // 메인 페이지로 이동
         return "redirect:/market/marketpost";
     }
 }

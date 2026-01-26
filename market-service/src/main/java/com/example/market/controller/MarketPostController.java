@@ -39,13 +39,6 @@ public class MarketPostController {
         return "post_write";
     }
 
-    // 글쓰기 완료
-    @PostMapping("/market/write")
-    public String createPost(@ModelAttribute MarketPostRequestDto dto) { // @ModelAttribute 권장
-        marketPostService.createPost(dto);
-        return "redirect:/market/marketpost";
-    }
-
     // 상세 페이지
     @GetMapping("/market/post/{id}")
     public String postDetailPage(@PathVariable Long id, Model model) {
@@ -54,25 +47,41 @@ public class MarketPostController {
         return "post_detail";
     }
 
-    // 글 수정
-    @GetMapping("/market/edit/{id}")
-    public String editPage(@PathVariable Long id, Model model) {
-        MarketPostResponseDto post = marketPostService.getPostById(id);
-        model.addAttribute("post", post);
-        return "post_edit";
-    }
+    // [수정] 글쓰기 완료
+    @PostMapping("/market/write")
+    public String createPost(
+            // [변경] 게이트웨이가 준 ID는 문자열(String)입니다! (Long -> String)
+            @RequestHeader(value = "X-USER-ID", required = false) String userId,
+            @ModelAttribute MarketPostRequestDto dto
+    ) {
+        // 테스트용: 헤더 없으면 임시 ID 사용
+        if (userId == null) userId = "testUser"; // 테스트용 문자열 ID
 
-    // 수정 완료
-    @PostMapping("/market/edit/{id}")
-    public String updatePost(@PathVariable Long id, @ModelAttribute MarketPostRequestDto dto) {
-        marketPostService.updatePost(id, dto);
+        // 서비스로 문자열 ID를 넘김
+        marketPostService.createPost(dto, userId);
         return "redirect:/market/marketpost";
     }
 
-    // ... 나머지 삭제, 상태변경, 문의 메서드는 기존과 동일 ...
+    // [수정] 글 수정 완료
+    @PostMapping("/market/edit/{id}")
+    public String updatePost(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-USER-ID", required = false) String userId,
+            @ModelAttribute MarketPostRequestDto dto
+    ) {
+        if (userId == null) userId = "testUser";
+        marketPostService.updatePost(id, userId, dto);
+        return "redirect:/market/marketpost";
+    }
+
+    // [수정] 글 삭제
     @PostMapping("/market/delete/{id}")
-    public String deletePost(@PathVariable Long id) {
-        marketPostService.deletePost(id);
+    public String deletePost(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-USER-ID", required = false) String userId
+    ) {
+        if (userId == null) userId = "testUser";
+        marketPostService.deletePost(id, userId);
         return "redirect:/seller/sellerpost";
     }
 
