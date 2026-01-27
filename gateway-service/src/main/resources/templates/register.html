@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 가입</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .register-container {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .register-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #0d6efd;
+        }
+        .btn-register {
+            width: 100%;
+            padding: 10px;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        /* d-flex 부모에 적용 */
+        .d-flex.gap-2 {
+            align-items: stretch; /* 높이 맞춤 */
+        }
+        /* 인풋은 flex-grow: 1로 늘리고 버튼은 고정 최소 너비 */
+        #sellComId {
+            flex: 1; /* 가능한 최대 너비 */
+        }
+        #checkIdBtn,
+        #sendEmailBtn,
+        #verifyEmailBtn {
+            min-width: 60px; /* 최소 100px로 버튼 충분히 넓게 */
+        }
+        /*#checkIdBtn,*/
+        /*#sendEmailBtn,*/
+        /*#verifyEmailBtn {*/
+        /*    flex: 1; !* 부모 flexbox 안에서 가능한 최대 폭으로 늘림 *!*/
+        /*    min-width: 60px; !* 최소 60px 보장 *!*/
+        /*}*/
+        .pw-rules {
+            display: flex;
+            gap: 20px;
+            padding-left: 0;
+            list-style: none;
+            padding-left: 0;
+            margin-top: 4px;
+            list-style: none;
+            font-size: 12px;
+        }
+        .pw-rules li {
+            color: #9e9e9e; /* 기본 밝은 회색 */
+            margin-bottom: 4px;
+            font-weight: bold
+        }
+        .pw-rules li.valid {
+            color: #14df7fff; /* 밝은 초록 */
+            font-weight: bold
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="register-container">
+        <h2 class="register-title">회원 가입</h2>
+        <!--회원 유형-->
+        <div class="mb-3">
+            <label class="form-label">회원 유형</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio"
+                       name="companyType" id="typeBuyer"
+                       value="BUYER" checked>
+                <label class="form-check-label" for="typeBuyer">
+                    구매자
+                </label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="radio"
+                       name="companyType" id="typeSeller"
+                       value="SELLER">
+                <label class="form-check-label" for="typeSeller">
+                    판매자
+                </label>
+            </div>
+        </div>
+
+        <form id="registerForm">
+            <h4 class="register-title">기업 정보</h4>
+            <hr>
+            <div class="mb-3">
+                <label for="sellComName" class="form-label">사업자명</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="sellComName"
+                        placeholder="사업자등록증에 기재된 사업자명을 입력해주세요"
+                        name="sellComName"
+                        required>
+            </div>
+            <div class="mb-3">
+                <label for="sellRegNum" class="form-label">사업자 등록번호</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="sellRegNum"
+                        placeholder="사업자 등록번호 10자리를 입력해주세요"
+                        maxlength="10"
+                        name="sellRegNum"
+                        required>
+            </div>
+            <div class="mb-3">
+                <label for="sellRepName" class="form-label">대표자 성명</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="sellRepName"
+                        placeholder="대표자 성명을 입력해주세요"
+                        name="sellRepName"
+                        required>
+            </div>
+            <div class="mb-3">
+                <label for="sellComBirth" class="form-label">개업 일자</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="sellComBirth"
+                        placeholder="YYYYMMDD"
+                        name="sellComBirth"
+                        maxlength="8"
+                        required>
+            </div>
+            <div class="mb-3">
+                <label for="sellComAdr" class="form-label">회사주소</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="sellComAdr"
+                        placeholder=""
+                        name="sellComAdr"
+                        required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">회사 전화번호</label>
+                <div class="d-flex gap-2">
+                    <select class="form-select" id="sellComNumPrefix" style="max-width: 80px;">
+                        <option value="02">02</option>
+                        <option value="031">031</option>
+                        <option value="032">032</option>
+                        <option value="051">051</option>
+                        <option value="010">010</option>
+                    </select>
+                    <input
+                            type="text"
+                            class="form-control"
+                            id="sellComNum"
+                            placeholder="12345678"
+                            maxlength="8"
+                            required>
+                </div>
+            </div>
+            </br>
+            </br>
+            <h4 class="register-title">회원 정보</h4>
+            <hr>
+            <div class="mb-3">
+                <label for="sellBmName" class="form-label">담당자 이름</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="sellBmName"
+                        placeholder="해당 업무를 담당하시는 분의 성함을 입력해주세요"
+                        name="sellBmName"
+                        required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">담당자 전화번호</label>
+                <div class="d-flex gap-2">
+                    <select class="form-select" id="sellBmNumPrefix" style="max-width: 80px;">
+                        <option value="010" selected>010</option>
+                        <option value="011">011</option>
+                        <option value="016">016</option>
+                        <option value="017">017</option>
+                    </select>
+                    <input
+                            type="text"
+                            class="form-control"
+                            id="sellBmNum"
+                            placeholder="해당 업무를 담당하시는 분의 전화번호를 입력해주세요"
+                            maxlength="8"
+                            required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="sellBmDep" class="form-label">담당자 부서</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="sellBmDep"
+                        placeholder="해당 업무를 담당하시는 분의 부서를 입력해주세요"
+                        name="sellBmDep"
+                        required>
+            </div>
+            <div class="mb-3">
+                <label for="sellComId" class="form-label">아이디</label>
+                <div class="d-flex gap-2">
+                    <input
+                            type="text"
+                            class="form-control"
+                            id="sellComId"
+                            placeholder="3~15자 영문, 숫자로 아이디를 입력해주세요"
+                            required
+                            pattern="^[A-Za-z0-9]{3,15}$">
+                    <button type="button" class="btn btn-secondary" id="checkIdBtn">
+                        중복 확인
+                    </button>
+                </div>
+                <div id="id-error" style="color:red; font-size:12px;"></div>
+            </div>
+            <div class="mb-3">
+                <label for="sellComPw" class="form-label">비밀번호</label>
+                <input
+                        type="password"
+                        class="form-control"
+                        id="sellComPw"
+                        placeholder="비밀번호를 입력해주세요"
+                        name="sellComPw"
+                        required
+                        pattern="^[A-Za-z0-9!@#$%^&*]{8,30}$">
+
+                <ul id="pwRules" class="pw-rules">
+                    <li></li>
+                    <li id="rule-length">8~30자</li>
+                    <li id="rule-letter">영문 대·소문자</li>
+                    <li id="rule-number">숫자</li>
+                    <li id="rule-special">특수문자</li>
+                </ul>
+                    <!--비밀번호 확인-->
+                <input
+                        type="password"
+                        class="form-control mt-2"
+                        id="sellComPwConfirm"
+                        placeholder="비밀번호를 한 번 더 입력해주세요"
+                        required />
+                <div id="pwMessage" style="font-size:12px; color:red;"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="sellComEmail" class="form-label">이메일</label>
+                <div class="d-flex gap-2">
+                    <input
+                            type="email"
+                            class="form-control"
+                            id="sellComEmail"
+                            placeholder="해당 업무에 사용할 이메일 주소를 입력해주세요"
+                            required>
+                    <button type="button" class="btn btn-outline-secondary" id="sendEmailBtn">
+                        인증
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="emailCode" class="form-label">인증번호</label>
+                <div class="d-flex gap-2">
+                    <input
+                            type="text"
+                            class="form-control"
+                            id="emailCode"
+                            maxlength="6"
+                            readonly>
+                    <button type="button" class="btn btn-outline-primary" id="verifyEmailBtn">
+                        확인
+                    </button>
+                </div>
+                <div id="email-msg" style="font-size:12px;"></div>
+            </div>
+            </br>
+            </br>
+            <h4 class="register-title">약관 동의</h4>
+            <hr>
+                    <!--약관동의 내용이 새로운 창에 뜰 예정-->
+            <div class="mb-3 form-check">
+                <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="termsCheck"
+                        required>
+                <label class="form-check-label" for="termsCheck">
+                    [필수]
+                    <a href="terms.html" target="_blank" style="color:blue; text-decoration:underline;">서비스 이용약관</a>에 동의합니다.
+                </label>
+            </div>
+            <div class="mb-3 form-check">
+                <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="privacyCheck"
+                        required>
+                <label class="form-check-label" for="privacyCheck">
+                    [필수]
+                    <a href="privacy.html" target="_blank" style="color:blue; text-decoration:underline;">개인정보 처리방침</a>에 동의합니다.
+                </label>
+            </div>
+            <div class="mb-3 form-check">
+                <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="marketingCheck">
+                <label class="form-check-label" for="marketingCheck">
+                    [선택]
+                    <a href="marketing.html" target="_blank" style="color:blue; text-decoration:underline;">마케팅 이용약관</a>에 동의합니다.
+                </label>
+            </div>
+
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-register">회원 가입</button>
+            </div>
+            <div class="login-link">
+                <a href="/login">이미 계정이 있으신가요? 로그인</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const sellComIdInput = document.getElementById('sellComId');
+    const idError = document.getElementById('id-error');
+    const checkIdBtn = document.getElementById('checkIdBtn');
+    const registerForm = document.getElementById('registerForm');
+    const idRegex = /^[A-Za-z0-9]{3,15}$/;
+
+    let isIdChecked = false;
+
+    const emailInput = document.getElementById('sellComEmail');
+    const sendEmailBtn = document.getElementById('sendEmailBtn');
+    const verifyEmailBtn = document.getElementById('verifyEmailBtn');
+    const emailCodeInput = document.getElementById('emailCode');
+    const emailMsg = document.getElementById('email-msg');
+
+    let isEmailVerified = false;
+
+    const pw = document.getElementById("sellComPw");
+    const pwConfirm = document.getElementById("sellComPwConfirm");
+    const msg = document.getElementById("pwMessage");
+
+    const pwInput = document.getElementById('sellComPw');
+
+    const ruleLength = document.getElementById('rule-length');
+    const ruleLetter = document.getElementById('rule-letter');
+    const ruleNumber = document.getElementById('rule-number');
+    const ruleSpecial = document.getElementById('rule-special');
+
+    const termsCheck = document.getElementById('termsCheck');
+    const privacyCheck = document.getElementById('privacyCheck');
+
+    pwInput.addEventListener('input', function () {
+        const value = pwInput.value;
+        // 8~30자
+        toggleRule(ruleLength, value.length >= 8 && value.length <= 30);
+        // 영문 대소문자
+        toggleRule(ruleLetter, /[A-Za-z]/.test(value));
+        // 숫자
+        toggleRule(ruleNumber, /[0-9]/.test(value));
+        // 특수문자
+        toggleRule(ruleSpecial, /[!@#$%^&*]/.test(value));
+    });
+
+    function toggleRule(element, condition) {
+        if (condition) {
+            element.classList.add('valid');
+        } else {
+            element.classList.remove('valid');
+        }
+    }
+
+    // 🔹 아이디 중복 확인 버튼
+    checkIdBtn.addEventListener('click', async () => {
+        const sellComId = sellComIdInput.value.trim();
+        idError.textContent = '';
+        idError.style.color = 'red';
+        isIdChecked = false;
+
+        if (!sellComId) {
+            idError.textContent = '아이디를 입력하세요.';
+            return;
+        }
+        if (!idRegex.test(sellComId)) {
+            idError.textContent = '아이디는 3~15자 영문, 숫자만 가능합니다.';
+            sellComIdInput.focus();
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/auth/check-id?sellComId=${sellComId}`);
+            const exists = await res.json();
+
+            if (exists) {
+                idError.textContent = '이미 사용 중인 아이디입니다.';
+                sellComIdInput.value = '';
+                sellComIdInput.focus();
+            } else {
+                idError.style.color = 'green';
+                idError.textContent = '사용 가능한 아이디입니다.';
+                isIdChecked = true;
+            }
+        } catch (e) {
+            idError.textContent = '중복 확인 중 오류가 발생했습니다.';
+        }
+    });
+
+    // 🔹 아이디 입력값 변경 시 다시 중복 확인 필요
+    sellComIdInput.addEventListener('input', () => {
+        isIdChecked = false;
+        idError.textContent = '';
+    });
+
+    // 🔹 회원가입 submit 시 중복 확인 여부 검사
+    registerForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // 필수 약관 동의 확인
+        if (!termsCheck.checked) {
+            alert('서비스 이용약관에 동의해주세요.');
+            termsCheck.focus();
+            return;
+        }
+        if (!privacyCheck.checked) {
+            alert('개인정보 처리방침에 동의해주세요.');
+            privacyCheck.focus();
+            return;
+        }
+
+        // 개업일자, 사업자 등록번호, 회사 전화번호, 담당자 전화번호 크기
+        if (document.getElementById('sellRegNum').value.length !== 10) {
+            alert('사업자 등록번호는 10자리입니다.');
+            document.getElementById('sellRegNum').focus();
+            return;
+        }
+        if (document.getElementById('sellComNum').value.length < 7) {
+            alert('회사 전화번호를 정확히 입력해주세요.');
+            document.getElementById('sellComNum').focus();
+            return;
+        }
+        if (document.getElementById('sellBmNum').value.length < 7) {
+            alert('담당자 전화번호를 정확히 입력해주세요.');
+            document.getElementById('sellBmNum').focus();
+            return;
+        }
+        if (document.getElementById('sellComBirth').value.length !== 8) {
+            alert('개업일자는 1999년 1월 1일이라면, 19990101처럼 입력해주세요.');
+            document.getElementById('sellComBirth').focus();
+            return;
+        }
+
+        if (!isIdChecked) {
+            idError.style.color = 'red';
+            idError.textContent = '아이디 중복 확인을 해주세요.';
+            sellComIdInput.focus();
+            return;
+        }
+
+        // 비밀번호 검증 추가
+        if (!checkPasswordMatch()) {
+            pwConfirm.focus();
+            return;
+        }
+
+        if (!checkPasswordStrength(pw.value)) {
+            msg.textContent = '비밀번호는 영문, 숫자, 특수문자를 모두 포함해야 합니다.';
+            msg.style.color = 'red';
+            pw.focus();
+            return;
+        }
+
+        // 이메일 인증 확인
+        if (!isEmailVerified) {
+            emailMsg.style.color = 'red';
+            emailMsg.textContent = '이메일 인증을 완료해주세요.';
+            emailInput.focus();
+            return;
+        }
+
+        // 구매자 판매자 선택
+        const companyType = document.querySelector(
+            'input[name="companyType"]:checked'
+        ).value;
+
+        const sellComNum =
+            document.getElementById('sellComNumPrefix').value
+            + '-' +
+            document.getElementById('sellComNum').value;
+        const sellBmNum =
+            document.getElementById('sellBmNumPrefix').value
+            + '-' +
+            document.getElementById('sellBmNum').value;
+
+        const payload = {
+            companyType, // 추가
+            sellComName: document.getElementById('sellComName').value, // 사업자명
+            sellRegNum: document.getElementById('sellRegNum').value, // 사업자 등록번호
+            sellRepName: document.getElementById('sellRepName').value, // 대표자 성명
+            sellComBirth: document.getElementById('sellComBirth').value, // 개업일자
+            sellComAdr: document.getElementById('sellComAdr').value, // 회사 주소
+            sellComNum, // 회사 전화번호
+            sellBmName: document.getElementById('sellBmName').value, // 담당자 성명
+            sellBmNum, // 담당자 전화번호
+            sellBmDep: document.getElementById('sellBmDep').value, // 담당자 부서
+            sellComId: sellComIdInput.value, // Id
+            sellComPw: pw.value, // Password
+            sellComPwConfirm: pwConfirm.value, // 비밀번호 확인
+            sellComEmail: emailInput.value, // Email
+            marketingCheck: document.getElementById('marketingCheck').checked ? "Y" : "N" //마케팅 이용약관 체크 여부
+        };
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert('회원 가입이 완료되었습니다.');
+                window.location.href = '/login';
+            } else {
+                const error = await response.text();
+                alert('회원 가입 실패: ' + error);
+            }
+        } catch (err) {
+            alert('회원 가입 중 오류가 발생했습니다.');
+        }
+    });
+
+    // 전화번호 숫자만 넣으세요
+    function allowOnlyNumbers(input) {
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/[^0-9]/g, '');
+        });
+    }
+
+    // 각각 개업일자, 사업자 등록번호, 회사 전화번호, 담당자 전화번호
+    allowOnlyNumbers(document.getElementById('sellComBirth'));
+    allowOnlyNumbers(document.getElementById('sellRegNum'));
+    allowOnlyNumbers(document.getElementById('sellComNum'));
+    allowOnlyNumbers(document.getElementById('sellBmNum'));
+
+    // 비밀번호 제약 조건 확인용
+    function checkPasswordStrength(password) {
+        const hasLetter = /[A-Za-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecial = /[!@#$%^&*]/.test(password);
+        const validLength = password.length >= 8 && password.length <= 30;
+
+        return hasLetter && hasNumber && hasSpecial && validLength;
+    }
+
+    function checkPasswordMatch() {
+        if (!pw.value || !pwConfirm.value) {
+            msg.textContent = "";
+            return false;
+        }
+        if (pw.value !== pwConfirm.value) {
+            msg.textContent = "비밀번호가 일치하지 않습니다.";
+            msg.style.color = "red";
+            return false;
+        } else {
+            msg.textContent = "비밀번호가 일치합니다.";
+            msg.style.color = "green";
+            return true;
+        }
+    }
+
+    pw.addEventListener("keyup", checkPasswordMatch);
+    pwConfirm.addEventListener("keyup", checkPasswordMatch);
+
+    // 인증 메일 전송
+    sendEmailBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+        emailMsg.textContent = '';
+        isEmailVerified = false;
+
+        if (!email) {
+            emailMsg.textContent = '이메일을 입력하세요.';
+            emailMsg.style.color = 'red';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email
+                })
+            });
+
+            if (!res.ok) {
+                emailMsg.textContent = '이메일 전송 실패';
+                emailMsg.style.color = 'red';
+                return;
+            }
+
+            const data = await res.json(); // { code }
+
+            // 내부적으로 인증번호 저장
+            emailCodeInput.value = data.code;
+            emailCodeInput.readOnly = true;
+
+            // 🔹 alert창 띄우기
+            alert('인증번호가 전송되었습니다. 이메일을 확인하세요.');
+
+            // 상태 메시지
+            emailMsg.textContent = '인증번호가 전송되었습니다.';
+            emailMsg.style.color = 'blue';
+        } catch (err) {
+            emailMsg.textContent = '이메일 전송 중 오류가 발생했습니다.';
+            emailMsg.style.color = 'red';
+        }
+    });
+
+    // 이메일 인증번호
+    verifyEmailBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+        const code = emailCodeInput.value.trim();
+
+        const res = await fetch('/api/auth/email/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email,
+                code
+            })
+        });
+
+        if (res.ok) {
+            emailMsg.textContent = '이메일 인증 완료';
+            emailMsg.style.color = 'green';
+            isEmailVerified = true;
+
+            verifyEmailBtn.disabled = true;
+        } else {
+            emailMsg.textContent = '인증번호가 올바르지 않습니다.';
+            emailMsg.style.color = 'red';
+            isEmailVerified = false;
+        }
+    });
+
+</script>
+</body>
+</html>
