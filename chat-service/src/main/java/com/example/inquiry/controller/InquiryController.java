@@ -13,13 +13,13 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/inquiry")
+@RequestMapping("/inquiry") // 기본 주소
 @RequiredArgsConstructor
 public class InquiryController {
 
     private final InquiryService serviceInquiry;
 
-    // 문의 등록
+    // 1. 문의 등록 (API)
     @PostMapping("/add")
     public ResponseEntity<String> addInquiry(
             @RequestHeader("X-USER-ID") String sellComId,
@@ -28,7 +28,7 @@ public class InquiryController {
         return ResponseEntity.ok("문의 등록 완료");
     }
 
-    // 답변 등록
+    // 2. 답변 등록 (API)
     @PostMapping("/reply/{inquiryId}")
     public ResponseEntity<String> replyInquiry(
             @RequestHeader("X-USER-ID") String sellComId,
@@ -38,14 +38,14 @@ public class InquiryController {
         return ResponseEntity.ok("답변 등록 완료");
     }
 
-    // 내가 보낸 문의 데이터 조회
+    // 3. 내가 보낸 문의 데이터 조회 (API)
     @GetMapping("/sent")
     public ResponseEntity<List<InquiryResponseDto>> getSentInquiries(
             @RequestHeader("X-USER-ID") String sellComId) {
         return ResponseEntity.ok(serviceInquiry.getMySentInquiries(sellComId));
     }
 
-    // 나에게 온 문의 데이터 조회
+    // 4. 나에게 온 문의 데이터 조회 (API)
     @GetMapping("/received")
     public ResponseEntity<List<InquiryResponseDto>> getReceivedInquiries(
             @RequestHeader("X-USER-ID") String sellComId) {
