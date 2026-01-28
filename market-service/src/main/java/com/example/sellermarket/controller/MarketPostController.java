@@ -30,13 +30,21 @@ public class MarketPostController {
     public String market(Model model,
                          @RequestParam(value="page", defaultValue="0") int page,
                          @RequestParam(value="sort", defaultValue="latest") String sort,
-                         @ModelAttribute MarketPostSearchDto searchDto){
+                         @ModelAttribute MarketPostSearchDto searchDto,
+                         @RequestHeader(value = "X-USER-ID", required = false) String sellComId){
 
         Page<MarketPostResponseDto> paging = marketPostService.getPaging(page, sort, searchDto);
 
         model.addAttribute("paging", paging);
         model.addAttribute("sort", sort);
         model.addAttribute("searchDto", searchDto);
+
+        // 로그인한 사용자 정보 조회해서 모델에 담기
+        if (sellComId != null) {
+            userRepository.findBySellComId(sellComId).ifPresent(user -> {
+                model.addAttribute("user", user); // user 객체 전체를 넘김
+            });
+        }
 
         return "marketpost";
     }

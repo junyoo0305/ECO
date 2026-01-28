@@ -79,7 +79,9 @@
                 <button type="button" class="filter-toggle-btn" onclick="toggleFilter()">
                     ⚡ 조건 검색 <span id="toggleIcon">▼</span>
                 </button>
-                <a th:href="@{/market/write}" class="btn-primary" style="text-decoration: none; padding: 8px 16px; font-size: 0.9rem;">
+                <a th:if="${user != null and user.companyType.name() == 'SELLER'}"
+                   th:href="@{/market/write}"
+                   class="btn-primary">
                     📢 매물 등록
                 </a>
             </div>
