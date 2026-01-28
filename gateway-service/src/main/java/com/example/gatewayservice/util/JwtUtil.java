@@ -25,9 +25,11 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String name) {
+    // [수정] role 파라미터 추가!
+    public String generateToken(String userId, String role) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, name);
+        claims.put("role", role); // 토큰에 역할 정보 저장
+        return createToken(claims, userId);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {

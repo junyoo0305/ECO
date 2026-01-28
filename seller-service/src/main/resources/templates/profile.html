@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>기업 정보 - 판매자 센터</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/seller/css/style.css}">
     <style>
         /* [페이지 전용 스타일] 기업 정보 리스트 */
         .info-list { display: flex; flex-direction: column; gap: 15px; }
@@ -208,91 +208,6 @@
     </div>
 </div>
 
-<script>
-    // 모달 닫기
-    function closeManagerModal() {
-        document.getElementById('managerModal').style.display = 'none';
-    }
-
-    // 모달 열기
-    function openManagerModal() {
-        // 폼 리셋
-        document.getElementById('managerForm').reset();
-
-        // ID가 managerForm인 것을 사용해야 함
-        document.getElementById('managerForm').action = "/seller/manager/add";
-        document.getElementById('modalTitle').innerText = "새 담당자 등록";
-        document.getElementById('modalSubmitBtn').innerText = "등록하기";
-
-        document.getElementById('managerModal').style.display = 'flex';
-    }
-
-    // 모달 열기
-    function openEditModal(id, name, dept, phone, email) {
-        // 기존 값 채워넣기
-        document.getElementsByName('managerName')[0].value = name;
-        document.getElementsByName('department')[0].value = dept;
-        document.getElementsByName('email')[0].value = email;
-
-        // 전화번호 분리 로직 (010-1234-5678 -> 010 과 1234-5678)
-        if (phone) {
-            if (phone.includes("-")) {
-                var parts = phone.split("-");
-                document.getElementById('phonePrefix').value = parts[0];
-
-                // 나머지가 2부분이면 1234-5678, 아니면 그냥 넣음
-                if (parts.length >= 3) {
-                    document.getElementById('phoneBody').value = parts[1] + "-" + parts[2];
-                } else {
-                    document.getElementById('phoneBody').value = parts[1];
-                }
-            } else {
-                // 하이픈 없는 경우
-                document.getElementById('phoneBody').value = phone;
-            }
-        }
-
-        // 수정 모드로 변경
-        const form = document.getElementById('managerForm');
-        form.action = "/seller/manager/update/" + id; // 컨트롤러에 Update 메서드 필요
-
-        document.getElementById('modalTitle').innerText = "담당자 정보 수정";
-        document.getElementById('modalSubmitBtn').innerText = "수정하기";
-
-        document.getElementById('managerModal').style.display = 'flex';
-    }
-
-    // 전송 전 전화번호 합치기
-    function combinePhone() {
-        var prefix = document.getElementById('phonePrefix').value;
-        var body = document.getElementById('phoneBody').value;
-
-        if (!body) {
-            alert("연락처를 입력해주세요.");
-            return false;
-        }
-
-        var fullPhone = "";
-
-        if(body.includes("-")) {
-            fullPhone = prefix + "-" + body;
-        } else {
-            if(body.length >= 8) {
-                fullPhone = prefix + "-" + body.substring(0, 4) + "-" + body.substring(4);
-            } else {
-                fullPhone = prefix + "-" + body;
-            }
-        }
-
-        document.getElementById('combinedPhone').value = fullPhone;
-        return true;
-    }
-
-    // 모달 배경 클릭 시 닫기
-    window.onclick = function(event) {
-        var modal = document.getElementById('managerModal');
-        if (event.target == modal) { closeManagerModal(); }
-    }
-</script>
+<script th:src="@{/seller/js/profile.js}"></script>
 </body>
 </html>

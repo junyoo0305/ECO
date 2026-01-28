@@ -27,25 +27,45 @@ public class AuthService {
                 userRepository.findBySellComId(request.getSellComId())
                         .orElseThrow(() -> new RuntimeException("User not found"))
         ).map(user -> {
-            // 1️⃣ 회원 유형 불일치 (프론트에서 잘못 선택)
-            if (user.getCompanyType() != request.getCompanyType()) {
+            // 1. 회원 유형 일치 확인 (String 변환 비교)
+            String reqType = String.valueOf(request.getCompanyType());
+            String userType = String.valueOf(user.getCompanyType());
+
+            if (!reqType.equals(userType)) {
                 throw new IllegalStateException("회원 유형이 일치하지 않습니다.");
             }
-            // 2️⃣ 승인 여부 (SELLER만 의미 있음)
-            if (!"Y".equals(user.getApprovYn())) {
-                throw new IllegalStateException("승인 대기 중인 계정입니다.");
+
+            // 2. 승인 대기 확인 (판매자인 경우만)
+            // (만약 DB에 company_type이 "1" 또는 "SELLER"로 저장되어 있다면 그 값에 맞춰 수정)
+            if (("1".equals(userType) || "SELLER".equals(userType)) && !"Y".equals(user.getApprovYn())) {
+                throw new IllegalStateException("관리자 승인이 필요한 계정입니다.");
             }
-            // 3️⃣ 비밀번호 검증 (가장 비용 큰 연산)
-            String hashed = Sha512Util.hash(
-                    request.getSellComPw(),
-                    user.getSalt()
-            );
+
+            // 3. 비밀번호 검증
+            String hashed = Sha512Util.hash(request.getSellComPw(), user.getSalt());
             if (!hashed.equals(user.getSellComPw())) {
                 throw new InvalidPasswordException("비밀번호가 올바르지 않습니다.");
             }
-            // 4️⃣ 토큰 발급
-            String token = jwtUtil.generateToken(user.getSellComId());
-            return new LoginResponse(token, user.getSellComId(), user.getRole());
+
+            // [핵심] 토큰에 넣을 최종 역할(Role) 결정 로직
+            String tokenRole = user.getRole(); // 기본적으로 DB의 role ("USER" or "ADMIN") 가져옴
+
+            if ("USER".equals(tokenRole)) {
+                // 관리자가 아니라면, company_type을 보고 실제 역할을 결정
+                if ("1".equals(userType)) {
+                    tokenRole = "SELLER";
+                } else if ("0".equals(userType)) {
+                    tokenRole = "BUYER";
+                } else {
+                    // DB에 "SELLER", "BUYER" 문자열로 저장된 경우 그대로 사용
+                    tokenRole = userType;
+                }
+            }
+
+            // 4. 결정된 역할(tokenRole)을 토큰에 심어줌 -> 이제 게이트웨이가 "SELLER"라고 인식함!
+            String token = jwtUtil.generateToken(user.getSellComId(), tokenRole);
+
+            return new LoginResponse(token, user.getSellComId(), tokenRole);
         });
     }
 

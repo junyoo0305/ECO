@@ -12,7 +12,10 @@
             <a th:href="@{/seller/sellerpost}">📢 판매글 관리</a>
         </li>
         <li th:classappend="${activePage == 'request'} ? 'active'">
-            <a th:href="@{/seller/chat/list}">📩 구매 요청</a>
+            <a href="/inquiry/view/received">📩 받은 구매 요청</a>
+        </li>
+        <li th:classappend="${activePage == 'sent'} ? 'active'">
+            <a href="/inquiry/view/sent">📤 보낸 문의 (나의 질문)</a>
         </li>
         <li th:classappend="${activePage == 'password'} ? 'active'">
             <a th:href="@{/seller/passwordUpdate}">🔒 비밀번호 수정</a>
