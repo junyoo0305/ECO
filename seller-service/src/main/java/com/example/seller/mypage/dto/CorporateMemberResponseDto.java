@@ -20,7 +20,7 @@ public class CorporateMemberResponseDto {
     private String sellBmNum;     // 담당자 연락처
     private String sellBmDep;     // 담당자 부서
 
-    // [수정] User 엔티티를 받아서 DTO로 변환
+    // User 엔티티를 받아서 DTO로 변환
     public static CorporateMemberResponseDto fromEntity(User entity) {
         return CorporateMemberResponseDto.builder()
                 .sellComName(entity.getSellComName())

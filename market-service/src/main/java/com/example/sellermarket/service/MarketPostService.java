@@ -35,7 +35,7 @@ public class MarketPostService {
 
     private final String uploadPath = "C:/eco_images/";
 
-    // 1. 목록 조회 (페이징 + 검색)
+    // 목록 조회 (페이징 + 검색)
     @Transactional(readOnly = true)
     public Page<MarketPostResponseDto> getPaging(int page, String sortStr, MarketPostSearchDto searchDto) {
 
@@ -55,11 +55,11 @@ public class MarketPostService {
         // 조회
         Page<MarketPost> postPage = marketPostRepository.findAll(spec, pageable);
 
-        // [수정] DTO 변환 (이미지 로직이 DTO 안으로 이동했으므로 서비스 코드가 깔끔해짐)
+        // DTO 변환 이미지 로직이 DTO 안으로 이동
         return postPage.map(MarketPostResponseDto::fromEntity);
     }
 
-    // 2. 상세 조회
+    // 상세 조회
     @Transactional(readOnly = true)
     public MarketPostResponseDto getPostById(Long id) {
         MarketPost post = marketPostRepository.findById(id)
@@ -69,43 +69,42 @@ public class MarketPostService {
         return MarketPostResponseDto.fromEntity(post);
     }
 
-    // [수정] 3. 게시글 등록
+    // 게시글 등록
     @Transactional
     public void createPost(MarketPostRequestDto dto, String userId) { // String으로 변경
 
-        // 1. 문자열 ID("solar123")로 회원 찾기 -> 숫자 ID(1L) 꺼내기
+        // 문자열 ID("solar123")로 회원 찾기 -> 숫자 ID(1L) 꺼내기
         User member = userRepository.findBySellComId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다. ID: " + userId));
         Long realWriterId = member.getId(); // 진짜 PK값
 
-        // 2. 찾아낸 숫자 ID로 게시글 저장
+        // 찾아낸 숫자 ID로 게시글 저장
         MarketPost marketPost = dto.toEntity(realWriterId);
         MarketPost savedPost = marketPostRepository.save(marketPost);
 
-        // (2) 파일이 있다면 저장 후 PostFile 테이블에 등록
+        // 파일이 있다면 저장 후 PostFile 테이블에 등록
         MultipartFile file = dto.getImageFile();
         if (file != null && !file.isEmpty()) {
             savePostFile(savedPost.getPostId(), file);
         }
     }
 
-    // [수정] 4. 게시글 수정
+    // 게시글 수정
     @Transactional
     public void updatePost(Long postId, String userId, MarketPostRequestDto dto) {
         MarketPost post = marketPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
 
-        // 1. 본인 확인을 위해 요청자의 숫자 ID 찾기
+        // 본인 확인을 위해 요청자의 숫자 ID 찾기
         User member = userRepository.findBySellComId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         Long requestUserId = member.getId();
 
-        // 2. 작성자 ID(Long)와 요청자 ID(Long) 비교
+        // 작성자 ID(Long)와 요청자 ID(Long) 비교
         if (!post.getSellerId().equals(requestUserId)) {
             throw new IllegalArgumentException("수정 권한이 없습니다.");
         }
 
-        // --- 이하 기존 수정 로직 그대로 ---
         MultipartFile file = dto.getImageFile();
         if (file != null && !file.isEmpty()) {
             List<PostFile> oldFiles = post.getFiles();
@@ -127,13 +126,13 @@ public class MarketPostService {
         );
     }
 
-    // [수정] 삭제
+    // 삭제
     @Transactional
     public void deletePost(Long postId, String userId) {
         MarketPost post = marketPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
 
-        // 1. 본인 확인
+        //  본인 확인
         User member = userRepository.findBySellComId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
@@ -144,7 +143,7 @@ public class MarketPostService {
         post.delete();
     }
 
-    // [공통] 파일 저장 로직 분리
+    // 파일 저장 로직 분리
     private void savePostFile(Long postId, MultipartFile file) {
         try {
             File directory = new File(uploadPath);
@@ -171,12 +170,11 @@ public class MarketPostService {
         }
     }
 
-    // [추가] 판매 상태 변경 (판매중 <-> 판매종료)
+    // 판매 상태 변경
     @Transactional
     public void updateStatus(Long postId, String status) {
         MarketPost post = marketPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다. id=" + postId));
-        // Entity에 setSaleYn 메서드가 없으면 추가하거나, updateStatus 메서드를 만드세요.
         // 여기서는 Lombok @Setter가 있다고 가정하고 바로 넣습니다.
         post.setSaleYn(status);
     }

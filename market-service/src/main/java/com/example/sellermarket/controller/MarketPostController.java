@@ -73,7 +73,7 @@ public class MarketPostController {
         return "post_detail";
     }
 
-    // [수정] 글쓰기 완료
+    // 글쓰기 완료
     @PostMapping("/market/write")
     public String createPost(
             // [변경] 게이트웨이가 준 ID는 문자열(String)입니다! (Long -> String)
@@ -88,7 +88,16 @@ public class MarketPostController {
         return "redirect:/market/marketpost";
     }
 
-    // [수정] 글 수정 완료
+    // 수정 페이지 이동
+    @GetMapping("/market/edit/{id}")
+    public String editPage(@PathVariable Long id, Model model) {
+        MarketPostResponseDto post = marketPostService.getPostById(id);
+        model.addAttribute("post", post);
+
+        return "post_edit"; // post_edit.html 템플릿 반환
+    }
+
+    // 글 수정 완료
     @PostMapping("/market/edit/{id}")
     public String updatePost(
             @PathVariable Long id,
@@ -100,7 +109,7 @@ public class MarketPostController {
         return "redirect:/market/marketpost";
     }
 
-    // [수정] 글 삭제
+    // 글 삭제
     @PostMapping("/market/delete/{id}")
     public String deletePost(
             @PathVariable Long id,
@@ -117,7 +126,7 @@ public class MarketPostController {
         // findBySellComId 대신 findById(PK조회)를 사용하도록 수정
         return userRepository.findById(id).map(user -> {
 
-            // 2. 추가 담당자(SubManager) 목록 조회 (삭제되지 않은 것만)
+            // 추가 담당자(SubManager) 목록 조회 (삭제되지 않은 것만)
             List<PublicCompanyDto.SubManagerDto> subManagerDtos = subManagerRepository.findByUserIdAndDelYn(user.getId(), "N")
                     .stream()
                     .map(sm -> new PublicCompanyDto.SubManagerDto(
@@ -127,7 +136,7 @@ public class MarketPostController {
                             sm.getDepartment()))
                     .collect(Collectors.toList());
 
-            // 3. 전체 데이터 합쳐서 반환
+            // 전체 데이터 합쳐서 반환
             return ResponseEntity.ok(PublicCompanyDto.builder()
                     .sellComName(user.getSellComName())
                     .sellComAdr(user.getSellComAdr())

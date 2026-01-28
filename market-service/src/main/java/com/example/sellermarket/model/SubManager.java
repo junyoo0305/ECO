@@ -1,4 +1,4 @@
-package com.example.seller.mypage.model;
+package com.example.sellermarket.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,6 +16,7 @@ public class SubManager {
     @Column(name = "SUB_MANAGER_ID")
     private Long subManagerId;
 
+    // [수정] SELLER_ID -> USER_ID (통합 테이블 참조)
     @Column(name = "user_id", nullable = false)
     private Long userId;
 

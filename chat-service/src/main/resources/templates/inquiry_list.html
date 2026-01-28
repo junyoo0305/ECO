@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>문의 내역 - 마이페이지</title>
+    <link rel="stylesheet" href="/inquiry/css/style.css" th:href="@{/inquiry/css/style.css}">
+    <style>
+        /* =========================================
+           [레이아웃 핵심] 사이드바와 본문을 가로로 배치
+           ========================================= */
+        .layout-container {
+            display: flex;
+            min-height: calc(100vh - 60px);
+            background-color: #f8fafc;
+        }
+
+        /* 메인 콘텐츠 영역 */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .content-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* =========================================
+           [페이지 전용 스타일] 문의 리스트 디자인
+           ========================================= */
+        .page-header { margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
+        .page-title { font-size: 1.8rem; font-weight: 700; color: var(--text-dark, #1e293b); margin: 0 0 10px 0; }
+        .page-desc { color: var(--text-light, #64748b); font-size: 0.95rem; margin: 0; }
+
+        .inquiry-list { display: flex; flex-direction: column; gap: 15px; }
+        .inquiry-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .inquiry-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; }
+        .status-wait { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+        .status-done { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+        .card-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 10px; color: #1e293b; }
+        .card-content { color: #475569; white-space: pre-wrap; margin-bottom: 20px; line-height: 1.6; }
+
+        /* 답변 영역 스타일 */
+        .reply-box {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            margin-top: 15px;
+        }
+        .reply-title { font-weight: bold; margin-bottom: 8px; color: #3b82f6; display: flex; align-items: center; gap: 6px;}
+
+        .btn-reply {
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-reply:hover { background: #334155; }
+
+        /* 애니메이션 스타일 (하단에서 이동됨) */
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header('profile')}"></header>
+
+<div class="layout-container">
+
+    <aside th:replace="~{fragments/sidebar_mypage :: sidebar(${pageType == 'received' ? 'request' : 'sent'})}"></aside>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h2 class="page-title"
+                    th:text="${pageType == 'received' ? '📩 받은 구매 요청' : '📤 보낸 문의 내역'}">
+                    문의 내역
+                </h2>
+                <p class="page-desc" th:text="${pageType == 'received' ? '구매자가 보낸 문의 내역을 확인하고 답변할 수 있습니다.' : '내가 판매자에게 보낸 문의 내역입니다.'}">
+                    설명 텍스트
+                </p>
+            </div>
+
+            <div class="inquiry-list">
+                <div th:if="${#lists.isEmpty(inquiries)}" style="text-align: center; padding: 100px 0; color: #94a3b8;">
+                    <div style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;">📭</div>
+                    <p style="font-size: 1.1rem;">아직 등록된 문의 내역이 없습니다.</p>
+                </div>
+
+                <div th:each="item : ${inquiries}" class="inquiry-card">
+                    <div class="card-header">
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <span style="font-weight: 500;" th:text="${#temporals.format(item.createdDate, 'yyyy-MM-dd HH:mm')}">2026-01-27</span>
+                            <span style="color: #cbd5e1;">|</span>
+                            <span th:if="${pageType == 'received'}">👤 질문자: <strong style="color: #334155;" th:text="${item.inquirerName}">user1</strong></span>
+                            <span th:if="${pageType == 'sent'}">👤 수신자: <strong style="color: #334155;" th:text="${item.recipientId}">seller1</strong></span>
+                            <span style="color: #cbd5e1;">|</span>
+                            <span>📄 게시글 제목: <span th:text="${item.postTitle}">10</span></span>
+                        </div>
+
+                        <span class="status-badge"
+                              th:classappend="${item.isAnswered == 'Y'} ? 'status-done' : 'status-wait'"
+                              th:text="${item.isAnswered == 'Y'} ? '답변완료' : '답변대기'">
+                        </span>
+                    </div>
+
+                    <div class="card-title" th:text="${item.title}">문의 제목입니다</div>
+                    <div class="card-content" th:text="${item.content}">문의 내용입니다...</div>
+
+                    <div th:if="${item.isAnswered == 'Y'}" class="reply-box">
+                        <div class="reply-title">
+                            <span th:text="${pageType == 'received' ? '↪️ 나의 답변' : '↪️ 판매자 답변'}">답변</span>
+                        </div>
+                        <div th:text="${item.replyContent}" style="white-space: pre-wrap; color: #334155;">답변 내용...</div>
+                        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 10px; text-align: right;"
+                             th:text="${'답변일: ' + #temporals.format(item.replyDate, 'yyyy-MM-dd HH:mm')}"></div>
+                    </div>
+
+                    <div th:if="${pageType == 'received' and item.isAnswered == 'N'}" style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-reply"
+                                th:onclick="'openReplyModal(' + ${item.id} + ')'">
+                            ✏️ 답변 작성하기
+                        </button>
+                    </div>
+
+                    <div th:if="${pageType == 'sent' and item.isAnswered == 'N'}" style="text-align: right; color: #94a3b8; font-size: 0.9rem; margin-top: 15px;">
+                        <span style="display: inline-flex; align-items: center; gap: 5px;">
+                            <span style="animation: pulse 2s infinite;">⏳</span> 판매자의 확인을 기다리고 있습니다.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/inquiry/js/inquiry_list.js}"></script>
+
+</body>
+</html>

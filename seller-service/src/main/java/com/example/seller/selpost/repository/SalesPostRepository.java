@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface SalesPostRepository extends JpaRepository<SalesPost, Long> {
     List<SalesPost> findBySellerIdAndDelYn(Long sellerId, String delYn);
-//    List<SalesPost> findByDelYn(String delYn);
+//  List<SalesPost> findByDelYn(String delYn);
 }

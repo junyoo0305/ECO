@@ -20,7 +20,7 @@ public class SellerMyPageController {
     private final SellerMyPageService sellerMyPageService;
     private final UserRepository corporateMemberRepository;
 
-    // [핵심] 권한 체크용 유틸 메서드 (코드가 중복되니 하나로 뺌)
+    // 권한 체크용 유틸 메서드 (코드가 중복되니 하나로 뺌)
     private void checkSellerAuthority(String role) {
         if (!"SELLER".equals(role)) {
             // 게이트웨이에서 막겠지만, 2차 방어로 예외 발생시킴

@@ -18,30 +18,30 @@ import java.util.stream.Collectors;
 public class SellerPostService {
 
     private final SalesPostRepository salesPostRepository;
-    // [추가] 문자열 ID로 실제 회원의 PK(Long)를 찾기 위해 주입
+    // 문자열 ID로 실제 회원의 PK(Long)를 찾기 위해 주입
     private final UserRepository userRepository;
 
-    // [추가] 파일 저장을 위해 필요
+    // 파일 저장을 위해 필요
 //    private final PostFileRepository postFileRepository;
 //
 //    private final String uploadPath = "C:/eco_images/";
 
-    // [신규 메서드] 컨트롤러가 호출하는 메서드 (String ID 받음)
+    // 컨트롤러가 호출하는 메서드 (String ID 받음)
     @Transactional(readOnly = true)
     public List<SalesPostResponseDto> getPostsBySellComId(String sellComId) {
 
-        // 1. 문자열 ID("solar123")로 회원 엔티티 찾기
+        // 문자열 ID("solar123")로 회원 엔티티 찾기
         User member = userRepository.findBySellComId(sellComId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다. ID: " + sellComId));
 
-        // 2. 엔티티에서 진짜 PK(Long) 꺼내기
+        // 엔티티에서 진짜 PK(Long) 꺼내기
         Long realSellerId = member.getId();
 
-        // 3. 기존 로직(숫자 ID로 조회) 재사용
+        // 기존 로직(숫자 ID로 조회) 재사용
         return getPostsBySellerId(realSellerId);
     }
 
-    // 1. 내 판매글 목록 조회
+    // 내 판매글 목록 조회
     @Transactional(readOnly = true)
     public List<SalesPostResponseDto> getPostsBySellerId(Long sellerId) {
         return salesPostRepository.findBySellerIdAndDelYn(sellerId, "N").stream()

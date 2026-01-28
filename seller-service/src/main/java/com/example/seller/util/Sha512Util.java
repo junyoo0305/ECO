@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-@Component // ★ 스프링이 관리하는 객체(Bean)로 등록
+@Component // 스프링이 관리하는 객체(Bean) 등록
 public class Sha512Util {
 
     private final SecureRandom random = new SecureRandom();

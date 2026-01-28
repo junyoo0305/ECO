@@ -30,13 +30,13 @@ public class SalesPostResponseDto {
         List<PostFile> files = entity.getFiles();
         if (files != null && !files.isEmpty()) {
             thumbUrl = files.stream()
-                    // 1. 삭제 여부(delYn)가 'N'인 것만 필터링
+                    // 삭제 여부(delYn)가 N인 것만 필터링
                     .filter(file -> "N".equals(file.getDelYn()))
-                    // 2. 그 중 첫 번째 파일 선택
+                    // 그 중 첫 번째 파일 선택
                     .findFirst()
-                    // 3. 경로 문자열로 변환
+                    // 경로 문자열로 변환
                     .map(file -> "/market/images/" + file.getStoredFileName())
-                    // 4. 없으면 null
+                    // 없으면 null
                     .orElse(null);
         }
 
@@ -46,7 +46,7 @@ public class SalesPostResponseDto {
                 .energyType(entity.getEnergyType())
                 .priceKrw(entity.getPriceKrw())
 
-                // [수정] 위에서 만든 주소 넣기
+                // 위에서 만든 주소 넣기
                 .imageUrl(thumbUrl)
 
                 .regDate(entity.getRegDate())

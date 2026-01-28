@@ -27,7 +27,7 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        // 1. 인증 제외 경로 (로그인, 회원가입, 정적 리소스 등)
+        // 인증 제외 경로 (로그인, 회원가입, 정적 리소스 등)
         if (isExcludePath(path)) {
             return chain.filter(exchange);
         }
@@ -35,7 +35,7 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
         String token = null;
         ServerHttpRequest request = exchange.getRequest();
 
-        // 2. 헤더에서 토큰 찾기 (API 요청)
+        // 헤더에서 토큰 찾기 (API 요청)
         if (request.getHeaders().containsKey("Authorization")) {
             String headerToken = request.getHeaders().getFirst("Authorization");
             if (headerToken != null && headerToken.startsWith("Bearer ")) {
@@ -43,7 +43,7 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
             }
         }
 
-        // 3. 쿠키에서 토큰 찾기 (화면 이동)
+        // 쿠키에서 토큰 찾기 (화면 이동)
         if (token == null && request.getCookies().containsKey("Authorization")) {
             HttpCookie cookie = request.getCookies().getFirst("Authorization");
             if (cookie != null) {
@@ -57,7 +57,7 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
             }
         }
 
-        // 4. 토큰 검증 및 권한 확인
+        // 토큰 검증 및 권한 확인
         if (token != null && !jwtUtil.isTokenExpired(token)) {
             try {
                 String userId = jwtUtil.extractClaim(token, claims -> claims.getSubject());
@@ -65,7 +65,7 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
                 // 토큰에 있는 role ("SELLER" or "BUYER" or "ADMIN")을 꺼냄
                 String role = jwtUtil.extractClaim(token, claims -> claims.get("role", String.class));
 
-                // [권한 체크] /seller 경로는 "SELLER" 권한만 통과
+                // /seller 경로는 "SELLER" 권한만 통과
                 if (path.startsWith("/seller") && !"SELLER".equals(role)) {
                     log.warn("⛔ 권한 없음: 사용자({})의 역할({})로는 접근 불가", userId, role);
                     return onError(exchange, "Access denied", HttpStatus.FORBIDDEN);
@@ -85,7 +85,7 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
             }
         }
 
-        // 5. 토큰이 없거나 만료된 경우 -> 로그인 페이지로 리다이렉트
+        // 토큰이 없거나 만료된 경우 -> 로그인 페이지로 리다이렉트
         log.info("❌ 인증 실패 또는 토큰 없음 (Path: {})", path);
         // API 요청이 아니라면 로그인 페이지로 리다이렉트
         exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.FOUND);

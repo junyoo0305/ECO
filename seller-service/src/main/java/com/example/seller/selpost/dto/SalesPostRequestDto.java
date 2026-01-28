@@ -33,7 +33,7 @@ public class SalesPostRequestDto {
 
     private MultipartFile imageFile;
 
-    public SalesPost toEntity(Long sellerId) { // imageUrl 삭제
+    public SalesPost toEntity(Long sellerId) {
         return SalesPost.builder()
                 .sellerId(sellerId)
                 .title(this.title)

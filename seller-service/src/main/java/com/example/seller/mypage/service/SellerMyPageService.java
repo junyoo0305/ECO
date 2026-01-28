@@ -23,7 +23,7 @@ public class SellerMyPageService {
     private final SubManagerRepository subManagerRepository;
     private final Sha512Util sha512Util;
 
-    // --- 기업 정보 조회 ---
+    // 기업 정보 조회
     @Transactional(readOnly = true)
     public CorporateMemberResponseDto getMyInfo(String sellComId) {
         User user = userRepository.findBySellComId(sellComId)
@@ -32,13 +32,13 @@ public class SellerMyPageService {
         return CorporateMemberResponseDto.fromEntity(user);
     }
 
-    // --- 비밀번호 변경 ---
+    // 비밀번호 변경
     @Transactional
     public void changePassword(String sellComId, PasswordUpdateDto dto) {
         User user = userRepository.findBySellComId(sellComId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
-        // 1. 현재 비밀번호 확인 (SHA-512)
+        // 현재 비밀번호 확인 (SHA-512)
         // 사용자의 Salt를 꺼내서 입력받은 비밀번호를 똑같이 암호화해본 뒤 비교
         String hashedCurrentPw = sha512Util.encrypt(dto.getCurrentPassword(), user.getSalt());
 
@@ -46,15 +46,15 @@ public class SellerMyPageService {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        // 2. 새 비밀번호 확인
+        // 새 비밀번호 확인
         if (!dto.getNewPassword().equals(dto.getNewPasswordCheck())) {
             throw new IllegalArgumentException("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
         }
 
-        // 3. 비밀번호 정책 검증
+        // 비밀번호 정책 검증
         validatePassword(dto.getNewPassword());
 
-        // 4. 새 비밀번호 암호화 및 저장
+        // 새 비밀번호 암호화 및 저장
         // (보안을 위해 비밀번호 변경 시 Salt도 새로 발급하는 것을 권장합니다)
         String newSalt = sha512Util.generateSalt();
         String encryptedNewPw = sha512Util.encrypt(dto.getNewPassword(), newSalt);
@@ -74,7 +74,7 @@ public class SellerMyPageService {
         }
     }
 
-    // --- 담당자 관리 ---
+    // 담당자 관리
 
     @Transactional(readOnly = true)
     public List<SubManager> getManagers(String sellComId) {
@@ -137,7 +137,7 @@ public class SellerMyPageService {
         manager.setDelYn("Y");
     }
 
-    // --- 회원 탈퇴 (주석 해제 및 수정) ---
+    // 회원 탈퇴
     @Transactional
     public void withdrawSeller(String sellComId) {
         User user = userRepository.findBySellComId(sellComId)
