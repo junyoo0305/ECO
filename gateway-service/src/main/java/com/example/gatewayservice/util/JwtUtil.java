@@ -26,9 +26,10 @@ public class JwtUtil {
     }
 
     // [수정] role 파라미터 추가!
-    public String generateToken(String userId, String role) {
+    public String generateToken(String userId, String role, String sellComName) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role); // 토큰에 역할 정보 저장
+        claims.put("sellComName", sellComName); // 회사명 저장
         return createToken(claims, userId);
     }
 

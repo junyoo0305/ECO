@@ -63,7 +63,7 @@ public class AuthService {
             }
 
             // 4. 결정된 역할(tokenRole)을 토큰에 심어줌 -> 이제 게이트웨이가 "SELLER"라고 인식함!
-            String token = jwtUtil.generateToken(user.getSellComId(), tokenRole);
+            String token = jwtUtil.generateToken(user.getSellComId(), tokenRole, user.getSellComName());
 
             return new LoginResponse(token, user.getSellComId(), tokenRole);
         });

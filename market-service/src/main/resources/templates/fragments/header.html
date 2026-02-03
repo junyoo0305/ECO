@@ -10,7 +10,7 @@
         </ul>
     </nav>
     <div style="color: #94a3b8; font-size: 0.9rem;">
-        <span id="header-user-id" style="font-weight: bold; color: #333;">게스트</span>님
+        <span id="header-user-id" style="font-weight: bold; color: lightgreen;">게스트</span>님
         |
         <a href="javascript:void(0);" onclick="logout()" style="color: #cbd5e1; margin-left:10px;">로그아웃</a>
     </div>
@@ -38,7 +38,7 @@
                     const payload = JSON.parse(jsonPayload);
 
                     // ID 표시 (sub 클레임이 보통 ID입니다)
-                    document.getElementById('header-user-id').textContent = payload.sub;
+                    document.getElementById('header-user-id').textContent = payload.sellComName|| payload.sub;
                 } catch (e) {
                     console.error("토큰 파싱 실패", e);
                 }
