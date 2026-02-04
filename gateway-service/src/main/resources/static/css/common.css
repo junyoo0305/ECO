@@ -1,0 +1,119 @@
+/* [초기화 및 공통 스타일] */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans KR', sans-serif; background-color: #f5f5f5; color: #333; font-size: 13px; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+input[type="text"], input[type="password"] {
+    height: 30px; border: 1px solid #ddd; padding: 0 10px; outline: none;
+}
+input:focus { border-color: #666; }
+
+/* [레이아웃 전체 컨테이너] */
+.wrapper { display: flex; min-height: 100vh; }
+
+/* [좌측 사이드바] */
+aside {
+    width: 230px;
+    background-color: #2b5585; /* 짙은 파란색 */
+    flex-shrink: 0;
+    color: #fff;
+}
+aside .menu-item {
+    display: block;
+    padding: 12px 20px;
+    border-bottom: 1px solid #3c6390;
+    color: #b0c4de;
+    font-size: 13px;
+}
+aside .menu-item:hover { background-color: #1e3f66; color: #fff; }
+aside .menu-item.active {
+    background-color: #1a3b60;
+    color: #fff;
+    font-weight: 500;
+    border-left: 4px solid #5faee3; /* 포인트 컬러 */
+}
+aside .menu-icon { margin-right: 8px; width: 14px; display: inline-block; text-align: center; }
+
+/* [우측 메인 패널] */
+.main-panel { flex: 1; display: flex; flex-direction: column; background-color: #fff; }
+
+/* [헤더 영역 - 공통] */
+header {
+    width: 100%; height: 60px; background-color: #fff;
+    display: flex; justify-content: flex-start;
+}
+.header-inner {
+    /* [수정 포인트 2] 너비와 여백 계산 */
+    /* 콘텐츠 내부 너비(1200-80=1120)와 동일하게 설정 */
+    width: calc(100% - 80px);
+    max-width: 1120px;
+
+    /* 콘텐츠의 padding(40px) 위치에 맞춰서 마진을 줌 -> 라인 정확히 일치 */
+    margin: 0 40px;
+
+    padding: 0;
+    border-bottom: 1px solid #ddd;
+    display: flex; justify-content: space-between; align-items: center; height: 100%;
+}
+
+.header-title { font-size: 18px; font-weight: 700; color: #555; }
+.header-user-info { font-size: 12px; color: #666; display: flex; align-items: center; }
+.header-user-info strong { color: #333; }
+.btn-logout {
+    margin-left: 10px; background-color: #333; color: #fff; border: none;
+    padding: 5px 10px; cursor: pointer; font-size: 11px;
+}
+
+/* [콘텐츠 본문 공통] */
+.content { max-width: 1200px; padding: 40px; width: 100%; }
+h2.page-title {
+    font-size: 24px; font-weight: 500; color: #333;
+    margin-bottom: 20px; border-bottom: 1px solid #999; padding-bottom: 15px;
+}
+
+/* =========================================
+   [페이지별 스타일 모음]
+   ========================================= */
+
+/* 1. 목록 페이지 (memberlist.html) */
+.search-area { display: flex; justify-content: flex-end; margin-bottom: 15px; gap: 5px; }
+.search-area select, .search-area input { height: 30px; border: 1px solid #ccc; padding: 0 5px; }
+.btn-search { background-color: #555; color: #fff; border: none; padding: 0 15px; height: 30px; cursor: pointer; font-size: 12px; }
+
+.list-table { width: 100%; border-collapse: collapse; border-top: 2px solid #333; margin-bottom: 20px; }
+.list-table th { background-color: #f9f9f9; padding: 12px; font-weight: bold; color: #333; border-bottom: 1px solid #ccc; text-align: center; }
+.list-table td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; color: #666; }
+.list-table tr:hover td { background-color: #f0f8ff; }
+
+.pagination { display: flex; justify-content: center; margin: 30px 0; }
+.page-num { display: inline-block; width: 30px; height: 30px; line-height: 30px; background-color: #333; color: #fff; text-align: center; border: 1px solid #333; }
+.btn-area { text-align: right; }
+.btn-register { display: inline-block; background-color: #444; color: #fff; padding: 8px 25px; font-weight: bold; font-size: 13px; }
+.btn-register:hover { background-color: #333; }
+
+/* 2. 등록/수정 페이지 (memberwrite, memberview) */
+.form-table { width: 100%; border-top: 2px solid #333; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
+.form-row { display: flex; border-bottom: 1px solid #e5e5e5; align-items: center; min-height: 50px; }
+.label-col { width: 180px; background-color: #fff; font-weight: 700; color: #444; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; flex-shrink: 0; }
+.required { color: #d9534f; margin-right: 3px; font-weight: bold; }
+.input-col { flex: 1; padding: 10px; display: flex; align-items: center; }
+.btn-gray { background-color: #999; color: #fff; border: none; padding: 0 10px; height: 30px; cursor: pointer; font-size: 12px; margin-left: 5px; vertical-align: middle; }
+.radio-group label { margin-right: 15px; cursor: pointer; }
+.radio-group input { margin-right: 5px; vertical-align: middle; }
+.helper-text { margin-top: 15px; font-size: 12px; color: #0056b3; line-height: 1.6; }
+.half-row { display: flex; width: 100%; }
+.half-item { display: flex; flex: 1; border-right: 1px solid #e5e5e5; align-items: center; }
+.half-item:last-child { border-right: none; }
+.half-item .label-col { width: 140px; }
+
+/* 3. 버튼 모음 (등록/취소/목록/수정/삭제) */
+.action-buttons { margin-top: 30px; text-align: center; }
+
+/* 공통 버튼 크기 */
+.action-buttons button { width: 80px; height: 35px; cursor: pointer; font-weight: bold; border: none; color: #fff; margin: 0 2px; }
+
+.btn-submit { background-color: #444; }        /* 등록 버튼 */
+.btn-cancel { background-color: #888; }        /* 취소 버튼 */
+.btn-list   { background-color: #444; }        /* 목록 버튼 */
+.btn-update { background-color: #2b5585; }     /* 수정 버튼 (파란색) */
+.btn-delete { background-color: #d9534f; }     /* 삭제 버튼 (빨간색) */

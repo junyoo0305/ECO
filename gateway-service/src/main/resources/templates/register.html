@@ -2,337 +2,395 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>회원 가입</title>
+    <title>회원 가입 - 기업 재생에너지 지원센터</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
+        :root {
+            --primary-blue: #2563eb; /* 메인 페이지의 밝은 파란색 */
+            --primary-dark: #1e3a8a; /* 로고 색상 (네이비) */
+            --primary-light: #eff6ff; /* 배경용 연한 하늘색 */
+            --accent-green: #22c55e; /* 컨설팅 카드 색상 (포인트) */
+            --text-color: #333333;
+        }
+
         body {
-            background-color: #f8f9fa;
+            background-color: #f3f6fc; /* 아주 연한 푸른빛이 도는 회색 */
+            font-family: 'Noto Sans KR', sans-serif;
+            color: var(--text-color);
         }
+
+        .container {
+            max-width: 600px; /* 폼 너비를 조금 더 넓혀 시원하게 */
+        }
+
         .register-container {
-            max-width: 500px;
-            margin: 100px auto;
-            padding: 20px;
+            margin: 60px auto;
+            padding: 40px;
             background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 52, 166, 0.08); /* 파란빛이 도는 그림자 */
+            border-top: 5px solid var(--primary-blue); /* 상단 포인트 컬러 */
         }
+
         .register-title {
             text-align: center;
-            margin-bottom: 30px;
-            color: #333;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 28px;
         }
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #0d6efd;
-        }
-        .btn-register {
-            width: 100%;
-            padding: 10px;
-        }
-        .login-link {
+
+        .register-subtitle {
             text-align: center;
-            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
         }
-        /* d-flex 부모에 적용 */
+
+        /* 섹션 제목 스타일 */
+        h4.register-title {
+            text-align: left;
+            font-size: 18px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            color: var(--primary-dark);
+        }
+
+        h4.register-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background-color: var(--primary-blue);
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        hr {
+            border-top: 1px solid #e1e4e8;
+            margin-bottom: 25px;
+        }
+
+        /* 폼 컨트롤 디자인 */
+        .form-label {
+            font-weight: 500;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* 회원 유형 라디오 버튼 -> 카드형 선택으로 변경 CSS */
+        .type-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .type-option {
+            flex: 1;
+            position: relative;
+        }
+
+        .type-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .type-option label {
+            display: block;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #9ca3af;
+            background-color: #f9fafb;
+        }
+
+        /* 선택되었을 때 스타일 */
+        .type-option input:checked + label {
+            border-color: var(--primary-blue);
+            background-color: var(--primary-light);
+            color: var(--primary-blue);
+        }
+
+        /* 버튼 스타일 */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), #1d4ed8);
+            border: none;
+            padding: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, var(--primary-dark));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary, .btn-outline-secondary, .btn-outline-primary {
+            border-radius: 8px;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* d-flex gap-2 높이 맞춤 */
         .d-flex.gap-2 {
-            align-items: stretch; /* 높이 맞춤 */
+            align-items: stretch;
         }
-        /* 인풋은 flex-grow: 1로 늘리고 버튼은 고정 최소 너비 */
-        #sellComId {
-            flex: 1; /* 가능한 최대 너비 */
-        }
-        #checkIdBtn,
-        #sendEmailBtn,
-        #verifyEmailBtn {
-            min-width: 60px; /* 최소 100px로 버튼 충분히 넓게 */
-        }
-        /*#checkIdBtn,*/
-        /*#sendEmailBtn,*/
-        /*#verifyEmailBtn {*/
-        /*    flex: 1; !* 부모 flexbox 안에서 가능한 최대 폭으로 늘림 *!*/
-        /*    min-width: 60px; !* 최소 60px 보장 *!*/
-        /*}*/
+
+        #sellComId { flex: 1; }
+        #checkIdBtn, #sendEmailBtn, #verifyEmailBtn { min-width: 90px; }
+
+        /* 비밀번호 규칙 스타일 */
         .pw-rules {
             display: flex;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
             padding-left: 0;
-            list-style: none;
-            padding-left: 0;
-            margin-top: 4px;
+            margin-top: 8px;
             list-style: none;
             font-size: 12px;
         }
+
         .pw-rules li {
-            color: #9e9e9e; /* 기본 밝은 회색 */
-            margin-bottom: 4px;
-            font-weight: bold
+            color: #9ca3af;
+            background-color: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
         }
+
         .pw-rules li.valid {
-            color: #14df7fff; /* 밝은 초록 */
-            font-weight: bold
+            color: #fff;
+            background-color: var(--accent-green); /* 조건 충족 시 초록색 */
+            font-weight: bold;
+        }
+
+        /* 링크 스타일 */
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        /* 오류/성공 메시지 */
+        #id-error, #pwMessage, #email-msg {
+            margin-top: 5px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div class="register-container">
-        <h2 class="register-title">회원 가입</h2>
-        <!--회원 유형-->
-        <div class="mb-3">
-            <label class="form-label">회원 유형</label>
-            <div class="form-check">
-                <input class="form-check-input" type="radio"
-                       name="companyType" id="typeBuyer"
-                       value="BUYER" checked>
-                <label class="form-check-label" for="typeBuyer">
-                    구매자
-                </label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input" type="radio"
-                       name="companyType" id="typeSeller"
-                       value="SELLER">
-                <label class="form-check-label" for="typeSeller">
-                    판매자
-                </label>
-            </div>
-        </div>
+        <h2 class="register-title">기업 재생에너지 지원센터</h2>
+        <p class="register-subtitle">안전하고 투명한 재생에너지 거래의 시작</p>
 
         <form id="registerForm">
+            <div class="mb-4">
+                <label class="form-label">가입 유형을 선택해주세요</label>
+                <div class="type-selector">
+                    <div class="type-option">
+                        <input type="radio" name="companyType" id="typeBuyer" value="BUYER" checked>
+                        <label for="typeBuyer">구매자</label>
+                    </div>
+                    <div class="type-option">
+                        <input type="radio" name="companyType" id="typeSeller" value="SELLER">
+                        <label for="typeSeller">판매자</label>
+                    </div>
+                </div>
+            </div>
+
             <h4 class="register-title">기업 정보</h4>
             <hr>
             <div class="mb-3">
                 <label for="sellComName" class="form-label">사업자명</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="sellComName"
-                        placeholder="사업자등록증에 기재된 사업자명을 입력해주세요"
-                        name="sellComName"
-                        required>
+                <input type="text" class="form-control" id="sellComName" placeholder="사업자등록증 상의 상호명" name="sellComName" required>
             </div>
-            <div class="mb-3">
-                <label for="sellRegNum" class="form-label">사업자 등록번호</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="sellRegNum"
-                        placeholder="사업자 등록번호 10자리를 입력해주세요"
-                        maxlength="10"
-                        name="sellRegNum"
-                        required>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="sellRegNum" class="form-label">사업자 등록번호</label>
+                    <input type="text" class="form-control" id="sellRegNum" placeholder="- 없이 10자리 숫자" maxlength="10" name="sellRegNum" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="sellRepName" class="form-label">대표자 성명</label>
+                    <input type="text" class="form-control" id="sellRepName" placeholder="대표자 성명" name="sellRepName" required>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="sellRepName" class="form-label">대표자 성명</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="sellRepName"
-                        placeholder="대표자 성명을 입력해주세요"
-                        name="sellRepName"
-                        required>
-            </div>
+
             <div class="mb-3">
                 <label for="sellComBirth" class="form-label">개업 일자</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="sellComBirth"
-                        placeholder="YYYYMMDD"
-                        name="sellComBirth"
-                        maxlength="8"
-                        required>
+                <input type="text" class="form-control" id="sellComBirth" placeholder="YYYYMMDD (예: 20240101)" name="sellComBirth" maxlength="8" required>
             </div>
+
             <div class="mb-3">
-                <label for="sellComAdr" class="form-label">회사주소</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="sellComAdr"
-                        placeholder=""
-                        name="sellComAdr"
-                        required>
+                <label for="sellComAdr" class="form-label">회사 주소</label>
+                <input type="text" class="form-control" id="sellComAdr" placeholder="도로명 주소 입력" name="sellComAdr" required>
             </div>
+
             <div class="mb-3">
                 <label class="form-label">회사 전화번호</label>
                 <div class="d-flex gap-2">
-                    <select class="form-select" id="sellComNumPrefix" style="max-width: 80px;">
+                    <select class="form-select" id="sellComNumPrefix" style="max-width: 100px;">
                         <option value="02">02</option>
                         <option value="031">031</option>
                         <option value="032">032</option>
                         <option value="051">051</option>
                         <option value="010">010</option>
                     </select>
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="sellComNum"
-                            placeholder="12345678"
-                            maxlength="8"
-                            required>
+                    <input type="text" class="form-control" id="sellComNum" placeholder="12345678" maxlength="8" required>
                 </div>
             </div>
-            </br>
-            </br>
-            <h4 class="register-title">회원 정보</h4>
+
+            <h4 class="register-title">담당자 정보</h4>
             <hr>
-            <div class="mb-3">
-                <label for="sellBmName" class="form-label">담당자 이름</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="sellBmName"
-                        placeholder="해당 업무를 담당하시는 분의 성함을 입력해주세요"
-                        name="sellBmName"
-                        required>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="sellBmName" class="form-label">담당자 이름</label>
+                    <input type="text" class="form-control" id="sellBmName" placeholder="실무 담당자 성명" name="sellBmName" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="sellBmDep" class="form-label">담당자 부서</label>
+                    <input type="text" class="form-control" id="sellBmDep" placeholder="소속 부서" name="sellBmDep" required>
+                </div>
             </div>
+
             <div class="mb-3">
-                <label class="form-label">담당자 전화번호</label>
+                <label class="form-label">담당자 휴대전화</label>
                 <div class="d-flex gap-2">
-                    <select class="form-select" id="sellBmNumPrefix" style="max-width: 80px;">
+                    <select class="form-select" id="sellBmNumPrefix" style="max-width: 100px;">
                         <option value="010" selected>010</option>
                         <option value="011">011</option>
-                        <option value="016">016</option>
-                        <option value="017">017</option>
                     </select>
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="sellBmNum"
-                            placeholder="해당 업무를 담당하시는 분의 전화번호를 입력해주세요"
-                            maxlength="8"
-                            required>
+                    <input type="text" class="form-control" id="sellBmNum" placeholder="휴대전화 번호 입력" maxlength="8" required>
                 </div>
             </div>
-            <div class="mb-3">
-                <label for="sellBmDep" class="form-label">담당자 부서</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="sellBmDep"
-                        placeholder="해당 업무를 담당하시는 분의 부서를 입력해주세요"
-                        name="sellBmDep"
-                        required>
-            </div>
+
+            <h4 class="register-title">계정 정보</h4>
+            <hr>
+
             <div class="mb-3">
                 <label for="sellComId" class="form-label">아이디</label>
                 <div class="d-flex gap-2">
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="sellComId"
-                            placeholder="3~15자 영문, 숫자로 아이디를 입력해주세요"
-                            required
-                            pattern="^[A-Za-z0-9]{3,15}$">
-                    <button type="button" class="btn btn-secondary" id="checkIdBtn">
-                        중복 확인
-                    </button>
+                    <input type="text" class="form-control" id="sellComId" placeholder="영문, 숫자 포함 3~15자" required pattern="^[A-Za-z0-9]{3,15}$">
+                    <button type="button" class="btn btn-dark" id="checkIdBtn">중복 확인</button>
                 </div>
                 <div id="id-error" style="color:red; font-size:12px;"></div>
             </div>
+
             <div class="mb-3">
                 <label for="sellComPw" class="form-label">비밀번호</label>
-                <input
-                        type="password"
-                        class="form-control"
-                        id="sellComPw"
-                        placeholder="비밀번호를 입력해주세요"
-                        name="sellComPw"
-                        required
-                        pattern="^[A-Za-z0-9!@#$%^&*]{8,30}$">
+                <input type="password" class="form-control" id="sellComPw" placeholder="비밀번호 입력" name="sellComPw" required pattern="^[A-Za-z0-9!@#$%^&*]{8,30}$">
 
                 <ul id="pwRules" class="pw-rules">
-                    <li></li>
                     <li id="rule-length">8~30자</li>
-                    <li id="rule-letter">영문 대·소문자</li>
+                    <li id="rule-letter">영문</li>
                     <li id="rule-number">숫자</li>
                     <li id="rule-special">특수문자</li>
                 </ul>
-                    <!--비밀번호 확인-->
-                <input
-                        type="password"
-                        class="form-control mt-2"
-                        id="sellComPwConfirm"
-                        placeholder="비밀번호를 한 번 더 입력해주세요"
-                        required />
+
+                <input type="password" class="form-control mt-2" id="sellComPwConfirm" placeholder="비밀번호 재입력" required />
                 <div id="pwMessage" style="font-size:12px; color:red;"></div>
             </div>
 
             <div class="mb-3">
-                <label for="sellComEmail" class="form-label">이메일</label>
-                <div class="d-flex gap-2">
-                    <input
-                            type="email"
-                            class="form-control"
-                            id="sellComEmail"
-                            placeholder="해당 업무에 사용할 이메일 주소를 입력해주세요"
-                            required>
-                    <button type="button" class="btn btn-outline-secondary" id="sendEmailBtn">
-                        인증
-                    </button>
+                <label for="sellComEmail" class="form-label">이메일 인증</label>
+                <div class="d-flex gap-2 mb-2">
+                    <input type="email" class="form-control" id="sellComEmail" placeholder="업무용 이메일 주소" required>
+                    <button type="button" class="btn btn-outline-primary" id="sendEmailBtn">인증 요청</button>
                 </div>
-            </div>
 
-            <div class="mb-3">
-                <label for="emailCode" class="form-label">인증번호</label>
                 <div class="d-flex gap-2">
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="emailCode"
-                            maxlength="6"
-                            readonly>
-                    <button type="button" class="btn btn-outline-primary" id="verifyEmailBtn">
-                        확인
-                    </button>
+                    <input type="text" class="form-control" id="emailCode" placeholder="인증번호 6자리" maxlength="6" readonly>
+                    <button type="button" class="btn btn-primary" id="verifyEmailBtn">확인</button>
                 </div>
                 <div id="email-msg" style="font-size:12px;"></div>
             </div>
-            </br>
-            </br>
+
             <h4 class="register-title">약관 동의</h4>
             <hr>
-                    <!--약관동의 내용이 새로운 창에 뜰 예정-->
-            <div class="mb-3 form-check">
-                <input
-                        type="checkbox"
-                        class="form-check-input"
-                        id="termsCheck"
-                        required>
-                <label class="form-check-label" for="termsCheck">
-                    [필수]
-                    <a href="terms.html" target="_blank" style="color:blue; text-decoration:underline;">서비스 이용약관</a>에 동의합니다.
-                </label>
-            </div>
-            <div class="mb-3 form-check">
-                <input
-                        type="checkbox"
-                        class="form-check-input"
-                        id="privacyCheck"
-                        required>
-                <label class="form-check-label" for="privacyCheck">
-                    [필수]
-                    <a href="privacy.html" target="_blank" style="color:blue; text-decoration:underline;">개인정보 처리방침</a>에 동의합니다.
-                </label>
-            </div>
-            <div class="mb-3 form-check">
-                <input
-                        type="checkbox"
-                        class="form-check-input"
-                        id="marketingCheck">
-                <label class="form-check-label" for="marketingCheck">
-                    [선택]
-                    <a href="marketing.html" target="_blank" style="color:blue; text-decoration:underline;">마케팅 이용약관</a>에 동의합니다.
-                </label>
+
+            <div class="card p-3 bg-light border-0 mb-4">
+                <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                    <label class="form-check-label" for="termsCheck">
+                        [필수] <a href="terms.html" target="_blank" style="color:var(--primary-blue); font-weight:bold;">서비스 이용약관</a>에 동의합니다.
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="privacyCheck" required>
+                    <label class="form-check-label" for="privacyCheck">
+                        [필수] <a href="privacy.html" target="_blank" style="color:var(--primary-blue); font-weight:bold;">개인정보 처리방침</a>에 동의합니다.
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="marketingCheck">
+                    <label class="form-check-label" for="marketingCheck">
+                        [선택] <a href="marketing.html" target="_blank" style="color:#666;">마케팅 정보 수신</a>에 동의합니다.
+                    </label>
+                </div>
             </div>
 
-
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-register">회원 가입</button>
+            <div class="d-grid mt-5">
+                <button type="submit" class="btn btn-primary btn-register btn-lg">회원가입 완료</button>
             </div>
+
             <div class="login-link">
-                <a href="/login">이미 계정이 있으신가요? 로그인</a>
+                이미 계정이 있으신가요? <a href="/login">로그인하기</a>
             </div>
         </form>
     </div>
@@ -340,6 +398,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // 기존 스크립트 기능 100% 유지
     const sellComIdInput = document.getElementById('sellComId');
     const idError = document.getElementById('id-error');
     const checkIdBtn = document.getElementById('checkIdBtn');
@@ -416,7 +475,7 @@
                 sellComIdInput.value = '';
                 sellComIdInput.focus();
             } else {
-                idError.style.color = 'green';
+                idError.style.color = '#22c55e'; // 성공 시 초록색 (Green)
                 idError.textContent = '사용 가능한 아이디입니다.';
                 isIdChecked = true;
             }
@@ -464,7 +523,7 @@
             return;
         }
         if (document.getElementById('sellComBirth').value.length !== 8) {
-            alert('개업일자는 1999년 1월 1일이라면, 19990101처럼 입력해주세요.');
+            alert('개업일자는 19990101 형식으로 입력해주세요.');
             document.getElementById('sellComBirth').focus();
             return;
         }
@@ -582,7 +641,7 @@
             return false;
         } else {
             msg.textContent = "비밀번호가 일치합니다.";
-            msg.style.color = "green";
+            msg.style.color = "#22c55e"; // 성공 시 초록
             return true;
         }
     }
@@ -628,7 +687,7 @@
 
             // 상태 메시지
             emailMsg.textContent = '인증번호가 전송되었습니다.';
-            emailMsg.style.color = 'blue';
+            emailMsg.style.color = '#2563eb'; // 파란색
         } catch (err) {
             emailMsg.textContent = '이메일 전송 중 오류가 발생했습니다.';
             emailMsg.style.color = 'red';
@@ -651,10 +710,11 @@
 
         if (res.ok) {
             emailMsg.textContent = '이메일 인증 완료';
-            emailMsg.style.color = 'green';
+            emailMsg.style.color = '#22c55e'; // 초록
             isEmailVerified = true;
 
             verifyEmailBtn.disabled = true;
+            verifyEmailBtn.className = 'btn btn-success'; // 버튼 색상 변경
         } else {
             emailMsg.textContent = '인증번호가 올바르지 않습니다.';
             emailMsg.style.color = 'red';

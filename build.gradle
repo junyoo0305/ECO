@@ -1,3 +1,4 @@
+//팀원
 plugins {
     id 'java'
     // Spring Boot 버전 (3.1.5 유지)

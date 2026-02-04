@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판매회원 관리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css"> </head>
+<body>
+
+<div class="wrapper">
+    <aside th:replace="~{fragments/sidebar :: sidebar('seller')}"></aside>
+
+    <div class="main-panel">
+        <header th:replace="~{fragments/header :: header}"></header>
+
+        <div class="content">
+            <h2 class="page-title">판매회원 관리</h2>
+
+            <div class="search-area">
+                <select id="searchType">
+                    <option value="all">전체</option>
+                    <option value="name">회사명</option>
+                    <option value="manager">담당자명</option>
+                </select>
+                <input type="text" id="searchKeyword" placeholder="검색어 입력">
+                <button class="btn-search" id="btnSearch">검색</button>
+            </div>
+
+            <table class="list-table">
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 25%;">
+                    <col style="width: 15%;">
+                    <col style="width: 15%;">
+                    <col style="width: 15%;">
+                    <col style="width: 20%;">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>회사명</th>
+                    <th>담당자명</th>
+                    <th>아이디</th>
+                    <th>부서</th>
+                    <th>가입일</th>
+                </tr>
+                </thead>
+                <tbody id="seller-list-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // [보안관] 로그인 체크
+    fetch('/api/check-login').then(res => { if(res.status === 401) location.href = '/login'; });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSellerList();
+    });
+
+    function loadSellerList() {
+        fetch('/api/sellers')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('seller-list-body');
+                tableBody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6">등록된 판매회원이 없습니다.</td></tr>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    // 날짜 포맷팅 (YYYY-MM-DD)
+                    let dateStr = "";
+                    if(item.sellCreatedAt) {
+                        dateStr = item.sellCreatedAt.substring(0, 10);
+                    }
+
+                    const row = `
+                        <tr>
+                            <td>${item.sellSerialNum}</td>
+                            <td style="text-align: left; padding-left: 20px;">
+                                <a href="/sellerview?seq=${item.sellSerialNum}"
+                                   style="color: #2b5585; font-weight: bold; text-decoration: underline;">
+                                    ${item.sellComName}
+                                </a>
+                            </td>
+                            <td>${item.sellBmName}</td>
+                            <td>${item.sellComId}</td>
+                            <td>${item.sellBmDep}</td>
+                            <td>${dateStr}</td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+            })
+            .catch(err => console.error(err));
+    }
+</script>
+</body>
+</html>

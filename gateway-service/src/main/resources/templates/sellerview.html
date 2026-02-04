@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>판매회원 상세정보</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        /* 상세 페이지 전용 추가 스타일 */
+        .detail-table {
+            width: 100%;
+            border-top: 2px solid #333;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 30px;
+        }
+        .detail-row {
+            display: flex;
+            border-bottom: 1px solid #e5e5e5;
+            min-height: 50px;
+        }
+        /* 라벨 (왼쪽 회색 부분) */
+        .detail-label {
+            width: 150px;
+            background-color: #f9f9f9;
+            font-weight: 700;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 20px;
+            border-right: 1px solid #eee;
+            flex-shrink: 0;
+        }
+        /* 값 (오른쪽 흰색 부분) */
+        .detail-value {
+            flex: 1;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #333;
+        }
+        /* 반반 나누기용 */
+        .half-wrapper {
+            display: flex;
+            width: 100%;
+        }
+        .half-col {
+            flex: 1;
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <aside th:replace="~{fragments/sidebar :: sidebar('seller')}"></aside>
+
+    <div class="main-panel">
+        <header th:replace="~{fragments/header :: header}"></header>
+
+        <div class="content">
+            <h2 class="page-title">판매회원 관리</h2>
+
+            <div style="background-color: #f8f9fa; padding: 15px; border: 1px solid #ddd; margin-bottom: 20px; display: flex; align-items: center;">
+                <span style="font-weight: bold; color: #2b5585; margin-right: 15px;">회원승인 여부</span>
+                <label style="cursor: pointer; display: flex; align-items: center;">
+                    <input type="checkbox" id="approvalChk" style="width: 18px; height: 18px; margin-right: 8px;">
+                    <span id="approvalStatusText">승인 (체크 시 승인 처리됩니다)</span>
+                </label>
+            </div>
+
+            <div class="detail-table">
+                <div class="detail-row">
+                    <div class="half-wrapper">
+                        <div class="half-col">
+                            <div class="detail-label">회사명</div>
+                            <div class="detail-value" id="sellComName"></div>
+                        </div>
+                        <div class="half-col">
+                            <div class="detail-label">대표자명</div>
+                            <div class="detail-value" id="sellRepName"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="half-wrapper">
+                        <div class="half-col">
+                            <div class="detail-label">사업자등록번호</div>
+                            <div class="detail-value" id="sellRegNum"></div>
+                        </div>
+                        <div class="half-col">
+                            <div class="detail-label">대표전화</div>
+                            <div class="detail-value" id="sellComNum"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">회사주소(본사)</div>
+                    <div class="detail-value" id="sellComAdr"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="half-wrapper">
+                        <div class="half-col">
+                            <div class="detail-label">아이디</div>
+                            <div class="detail-value" id="sellComId"></div>
+                        </div>
+                        <div class="half-col">
+                            <div class="detail-label">담당자명</div>
+                            <div class="detail-value" id="sellBmName"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="half-wrapper">
+                        <div class="half-col">
+                            <div class="detail-label">담당자 연락처</div>
+                            <div class="detail-value" id="sellBmNum"></div>
+                        </div>
+                        <div class="half-col">
+                            <div class="detail-label">이메일</div>
+                            <div class="detail-value" id="sellComEmail"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">부서</div>
+                    <div class="detail-value" id="sellBmDep"></div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="btn-list" onclick="location.href='/sellerlist'">목록</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // [보안관] 로그인 체크
+    fetch('/api/check-login').then(res => { if(res.status === 401) location.href = '/login'; });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const seq = urlParams.get('seq');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!seq) {
+            alert("잘못된 접근입니다.");
+            location.href = '/sellerlist';
+            return;
+        }
+
+        fetch(`/api/sellers/${seq}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('sellComName').textContent = data.sellComName;
+                document.getElementById('sellRepName').textContent = data.sellRepName;
+                document.getElementById('sellRegNum').textContent = data.sellRegNum;
+                document.getElementById('sellComNum').textContent = data.sellComNum;
+                document.getElementById('sellComAdr').textContent = data.sellComAdr;
+                document.getElementById('sellComId').textContent = data.sellComId;
+                document.getElementById('sellBmName').textContent = data.sellBmName;
+                document.getElementById('sellBmNum').textContent = data.sellBmNum;
+                document.getElementById('sellComEmail').textContent = data.sellComEmail;
+                document.getElementById('sellBmDep').textContent = data.sellBmDep;
+
+                // [핵심] DB 값(approvalYn)에 따라 체크박스 상태 설정
+                const chk = document.getElementById('approvalChk');
+                if (data.approvalYn === 'Y') {
+                    chk.checked = true;
+                } else {
+                    chk.checked = false;
+                }
+            })
+            .catch(err => console.error(err));
+
+        // 2. 체크박스 변경 이벤트 (승인 처리)
+        document.getElementById('approvalChk').addEventListener('change', function() {
+            const isChecked = this.checked;
+            const newVal = isChecked ? 'Y' : 'N';
+            const msg = isChecked ? '승인' : '승인 취소';
+
+            if(!confirm(`정말로 ${msg} 하시겠습니까?`)) {
+                this.checked = !isChecked; // 취소하면 원래대로 되돌림
+                return;
+            }
+
+            // 서버로 변경 요청 전송
+            fetch(`/api/sellers/${seq}/approval`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approvalYn: newVal })
+            })
+                .then(response => {
+                    if(response.ok) {
+                        alert(`${msg} 처리되었습니다.`);
+                    } else {
+                        alert('처리 실패');
+                        this.checked = !isChecked; // 실패 시 원복
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('서버 오류');
+                    this.checked = !isChecked;
+                });
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside th:fragment="sidebar(menu)">
+    <ul>
+        <li>
+            <a href="/sellerlist" class="menu-item" th:classappend="${menu == 'seller'} ? 'active'">
+                <span class="menu-icon">🏢</span> 판매회원 관리
+            </a>
+        </li>
+        <li>
+            <a href="#" class="menu-item" th:classappend="${menu == 'buyer'} ? 'active'">
+                <span class="menu-icon">🏢</span> 구매회원 관리
+            </a>
+        </li>
+        <li>
+            <a href="#" class="menu-item" th:classappend="${menu == 'stat'} ? 'active'">
+                <span class="menu-icon">📊</span> 통계
+            </a>
+        </li>
+        <li>
+            <a href="/memberlist" class="menu-item" th:classappend="${menu == 'admin'} ? 'active'">
+                <span class="menu-icon">⚙️</span> 관리자관리
+            </a>
+        </li>
+    </ul>
+</aside>
+
+</body>
+</html>

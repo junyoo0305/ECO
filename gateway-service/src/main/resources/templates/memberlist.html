@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기업 재생에너지 지원센터 - 관리자 목록</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+</head>
+<body>
+
+<div class="wrapper">
+    <aside th:replace="~{fragments/sidebar :: sidebar('admin')}"></aside>
+
+    <div class="main-panel">
+        <header th:replace="~{fragments/header :: header}"></header>
+
+        <div class="content">
+            <h2 class="page-title">관리자관리</h2>
+
+            <div class="search-area">
+                <select id="searchType">
+                    <option value="all">전체</option>
+                    <option value="userId">아이디</option>
+                    <option value="name">성명</option>
+                </select>
+                <input type="text" id="searchKeyword" placeholder="검색어 입력">
+                <button class="btn-search" id="btnSearch">검색</button>
+            </div>
+
+            <table class="list-table">
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 30%;">
+                    <col style="width: 30%;">
+                    <col style="width: 30%;">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>아이디</th>
+                    <th>성명</th>
+                    <th>권한</th>
+                </tr>
+                </thead>
+                <tbody id="admin-list-body">
+
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <a href="#" class="page-num">1</a>
+            </div>
+
+            <div class="btn-area">
+                <a href="/memberwrite" class="btn-register">등록</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // [보안관] 페이지 열리자마자 로그인 체크 & 세션 만료 감지
+    fetch('/api/check-login')
+        .then(response => {
+            if (response.status === 401) {
+                // ... (세션 만료 처리 로직: 아까와 동일) ...
+                if (sessionStorage.getItem('loginStatus') === 'active') {
+                    alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+                    sessionStorage.removeItem('loginStatus');
+                }
+                location.href = '/login';
+            }
+            return response.json(); // [중요] 응답 내용을 JSON으로 받음
+        })
+        .then(data => {
+            // 로그인 성공 시 실행됨
+            sessionStorage.setItem('loginStatus', 'active');
+
+            // ★ [핵심] 일반 관리자(auth == '2')면 등록 버튼 숨기기
+            if (data && data.auth === '2') {
+                const btnRegister = document.querySelector('.btn-register');
+                if (btnRegister) {
+                    btnRegister.style.display = 'none'; // 버튼을 안 보이게 처리
+                }
+            }
+        })
+        .catch(err => console.error(err));
+
+    let allAdminData = []; // 전체 데이터를 저장할 변수
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. 초기 데이터 로드
+        fetch('/api/admins')
+            .then(response => response.json())
+            .then(data => {
+                allAdminData = data; // 데이터를 전역 변수에 저장
+                renderTable(allAdminData); // 테이블 그리기
+            })
+            .catch(error => console.error('Error:', error));
+
+        // 2. 검색 버튼 클릭 이벤트 연결
+        document.getElementById('btnSearch').addEventListener('click', function() {
+            filterData();
+        });
+
+        // (선택사항) 엔터키 눌렀을 때도 검색되게 하기
+        document.getElementById('searchKeyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                filterData();
+            }
+        });
+    });
+
+    // 테이블 그리는 함수 (따로 분리)
+    function renderTable(data) {
+        const tableBody = document.getElementById('admin-list-body');
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4">검색 결과가 없습니다.</td></tr>';
+            return;
+        }
+
+        data.forEach((member) => {
+            // 권한 텍스트 변환
+            let authText = "일반관리자";
+            if (member.auth === "1") authText = "슈퍼관리자";
+            else if (member.auth === "2") authText = "일반관리자";
+
+            const row = `
+                <tr>
+                    <td>${member.seq}</td>
+                    <td>
+                        <a href="/memberview?seq=${member.seq}" style="color: #2b5585; font-weight: bold; text-decoration: underline;">
+                            ${member.userId}
+                        </a>
+                    </td>
+                    <td>${member.name}</td>
+                    <td>${authText}</td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+    }
+
+    // 데이터 필터링 함수
+    function filterData() {
+        const type = document.getElementById('searchType').value;
+        const keyword = document.getElementById('searchKeyword').value.toLowerCase(); // 대소문자 무시
+
+        // 검색어가 없으면 전체 출력
+        if (!keyword) {
+            renderTable(allAdminData);
+            return;
+        }
+
+        // 필터링 로직
+        const filtered = allAdminData.filter(member => {
+            if (type === 'all') {
+                return (member.userId && member.userId.toLowerCase().includes(keyword)) ||
+                    (member.name && member.name.toLowerCase().includes(keyword));
+            } else if (type === 'userId') {
+                return member.userId && member.userId.toLowerCase().includes(keyword);
+            } else if (type === 'name') {
+                return member.name && member.name.toLowerCase().includes(keyword);
+            }
+            return false;
+        });
+
+        renderTable(filtered);
+    }
+
+
+</script>
+</body>
+</html>
