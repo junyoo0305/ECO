@@ -1,4 +1,4 @@
-package com.example.seller.model;
+package com.example.admin.model;
 
 import jakarta.persistence.*;
 import lombok.*;

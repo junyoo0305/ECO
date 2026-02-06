@@ -1,6 +1,6 @@
-package com.example.seller.config;
+package com.example.admin.config;
 
-import com.example.seller.interceptor.LoginCheckInterceptor;
+import com.example.admin.interceptor.LoginCheckInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 

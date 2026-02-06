@@ -1,7 +1,7 @@
-package com.example.seller.controller;
+package com.example.admin.controller;
 
-import com.example.seller.model.Admin;
-import com.example.seller.service.AdminService;
+import com.example.admin.model.Admin;
+import com.example.admin.service.AdminService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

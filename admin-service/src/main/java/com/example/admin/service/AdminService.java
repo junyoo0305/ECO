@@ -1,8 +1,8 @@
-package com.example.seller.service;
+package com.example.admin.service;
 
-import com.example.seller.dto.AdminRequestDto;
-import com.example.seller.model.Admin;
-import com.example.seller.repository.AdminRepository;
+import com.example.admin.dto.AdminRequestDto;
+import com.example.admin.model.Admin;
+import com.example.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +45,12 @@ public class AdminService {
 
         // 3. 인증 성공 시 회원 객체 반환
         return admin;
+    }
+
+    // [추가] 아이디 중복 확인 서비스 로직
+    @Transactional(readOnly = true)
+    public boolean checkIdDuplicate(String userId) {
+        return adminRepository.existsByUserId(userId);
     }
 
     @Transactional

@@ -1,6 +1,6 @@
-package com.example.seller.dto;
+package com.example.admin.dto;
 
-import com.example.seller.model.Admin;
+import com.example.admin.model.Admin;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

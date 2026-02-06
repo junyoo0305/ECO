@@ -134,7 +134,7 @@
             </div>
 
             <div class="action-buttons">
-                <button type="button" class="btn-list" onclick="location.href='/sellerlist'">목록</button>
+                <button type="button" class="btn-list" onclick="location.href='/buyerlist'">목록</button>
             </div>
 
         </div>
@@ -155,7 +155,7 @@
             return;
         }
 
-        fetch(`/admin/api/sellers/${seq}`)
+        fetch(`/admin/api/buyers/${seq}`)
             .then(response => response.json())
             .then(data => {
                 document.getElementById('sellComName').textContent = data.sellComName;
@@ -193,7 +193,7 @@
             }
 
             // 서버로 변경 요청 전송
-            fetch(`/admin/api/sellers/${seq}/approval`, {
+            fetch(`/admin/api/buyers/${seq}/approval`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ approvalYn: newVal })

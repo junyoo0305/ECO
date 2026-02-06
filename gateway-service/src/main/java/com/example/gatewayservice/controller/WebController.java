@@ -67,4 +67,16 @@ public class WebController {
         model.addAttribute("message", "판매회원 상세");
         return "sellerview";
     }
+
+    @GetMapping("/buyerlist")
+    public String buyerlist(Model model) {
+        model.addAttribute("message", "구매회원 관리");
+        return "buyerlist";
+    }
+
+    @GetMapping("/buyerview")
+    public String buyerview(Model model) {
+        model.addAttribute("message", "구매회원 상세");
+        return "buyerview";
+    }
 } 

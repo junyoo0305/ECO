@@ -2,20 +2,19 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>판매회원 관리</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/common.css"> </head>
+    <title>구매회원 관리</title> <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+</head>
 <body>
 
 <div class="wrapper">
-    <aside th:replace="~{fragments/sidebar :: sidebar('seller')}"></aside>
+    <aside th:replace="~{fragments/sidebar :: sidebar('buyer')}"></aside>
 
     <div class="main-panel">
         <header th:replace="~{fragments/header :: header}"></header>
 
         <div class="content">
-            <h2 class="page-title">판매회원 관리</h2>
+            <h2 class="page-title">구매회원 관리</h2>
 
             <div class="search-area">
                 <select id="searchType">
@@ -46,45 +45,43 @@
                     <th>가입일</th>
                 </tr>
                 </thead>
-                <tbody id="seller-list-body">
-                </tbody>
+                <tbody id="buyer-list-body"> </tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    // [보안관] 로그인 체크
     fetch('/api/check-login').then(res => { if(res.status === 401) location.href = '/adminlogin'; });
 
     document.addEventListener('DOMContentLoaded', function() {
-        loadSellerList();
+        loadBuyerList();
     });
 
-    function loadSellerList() {
-        fetch('/admin/api/sellers')
+    function loadBuyerList() {
+        // [수정] API 주소 변경: /admin/api/buyers
+        fetch('/admin/api/buyers')
             .then(response => {
-                if (!response.ok) throw new Error('네트워크 응답이 올바르지 않습니다.');
+                if (!response.ok) throw new Error('네트워크 응답 오류');
                 return response.json();
             })
             .then(data => {
-                const tableBody = document.getElementById('seller-list-body');
+                const tableBody = document.getElementById('buyer-list-body');
                 tableBody.innerHTML = '';
 
                 if (!data || data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6">등록된 판매회원이 없습니다.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="6">등록된 구매회원이 없습니다.</td></tr>';
                     return;
                 }
 
                 data.forEach((item, index) => {
-                    // [수정] 날짜 필드가 없으므로 일단 하이픈(-) 처리
-                    // 만약 User 엔티티에 가입일 필드(createDate 등)를 추가하면 그때 수정하세요.
                     let dateStr = "-";
 
                     const row = `
                         <tr>
-                            <td>${index + 1}</td> <td style="text-align: left; padding-left: 20px;">
-                                <a href="/sellerview?seq=${item.id}"
+                            <td>${index + 1}</td>
+                            <td style="text-align: left; padding-left: 20px;">
+                                <a href="/buyerview?seq=${item.id}"
                                    style="color: #2b5585; font-weight: bold; text-decoration: underline;">
                                     ${item.sellComName}
                                 </a>
@@ -100,8 +97,7 @@
             })
             .catch(err => {
                 console.error(err);
-                const tableBody = document.getElementById('seller-list-body');
-                tableBody.innerHTML = '<tr><td colspan="6">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>';
+                document.getElementById('buyer-list-body').innerHTML = '<tr><td colspan="6">오류 발생</td></tr>';
             });
     }
 </script>

@@ -1,4 +1,4 @@
-package com.example.seller.interceptor;
+package com.example.admin.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
