@@ -76,6 +76,9 @@
 
                 data.forEach((item, index) => {
                     let dateStr = "-";
+                    if (item.regDate) {
+                        dateStr = item.regDate.substring(0, 10);
+                    }
 
                     const row = `
                         <tr>

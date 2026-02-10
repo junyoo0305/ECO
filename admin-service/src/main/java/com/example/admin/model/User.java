@@ -2,7 +2,10 @@ package com.example.admin.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -75,6 +78,10 @@ public class User {
 
     @Column(name = "marketing_check", nullable = false, length = 1)
     private String marketingCheck; // 마케팅 동의 여부
+
+    @CreationTimestamp // ★ 핵심: INSERT 쿼리가 날아갈 때 자동으로 현재 시간을 넣어줍니다.
+    @Column(name = "reg_date", updatable = false) // 정보 수정할 때 이 날짜는 바뀌면 안 되니까 false
+    private LocalDateTime regDate;
 
     // [편의 메서드] 비밀번호 변경
     public void updatePassword(String newPassword) {

@@ -94,7 +94,8 @@
         fetch('/api/admins')
             .then(response => response.json())
             .then(data => {
-                allAdminData = data; // 데이터를 전역 변수에 저장
+                // ★ [여기 수정] 데이터를 받자마자 delYn이 'N'인 것만 남기고 필터링
+                allAdminData = data.filter(member => member.delYn === 'N');
                 renderTable(allAdminData); // 테이블 그리기
             })
             .catch(error => console.error('Error:', error));

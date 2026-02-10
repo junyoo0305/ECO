@@ -79,4 +79,11 @@ public class WebController {
         model.addAttribute("message", "구매회원 상세");
         return "buyerview";
     }
+
+    @GetMapping("/statistics")
+    public String statistics(Model model) {
+        model.addAttribute("message", "통계");
+        return "statistics";
+    }
+
 } 

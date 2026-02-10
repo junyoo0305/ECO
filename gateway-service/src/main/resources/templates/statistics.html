@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>통계 대시보드</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        /* 탭 스타일 */
+        .stats-tabs { display: flex; border-bottom: 2px solid #2b5585; margin-bottom: 20px; flex-wrap: wrap; }
+        .stats-tab { padding: 10px 20px; cursor: pointer; border: 1px solid #ddd; border-bottom: none; background: #f8f9fa; margin-right: -1px; }
+        .stats-tab.active { background: #2b5585; color: white; border-color: #2b5585; }
+
+        /* 상단 통계 박스 */
+        .global-stats { margin-bottom: 20px; font-size: 16px; font-weight: bold; color: #333; }
+        .global-stats span { color: #2b5585; margin-right: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <aside th:replace="~{fragments/sidebar :: sidebar('stats')}"></aside>
+
+    <div class="main-panel">
+        <header th:replace="~{fragments/header :: header}"></header>
+
+        <div class="content">
+            <h2 class="page-title">통계 현황</h2>
+
+            <div class="global-stats">
+                * 총 회원수: <span id="globalUser">0명</span>
+                * 총 공고수: <span id="globalPost">0건</span>
+            </div>
+
+            <div class="stats-tabs">
+                <div class="stats-tab active" data-type="seller-month">판매회원 (월별)</div>
+                <div class="stats-tab" data-type="buyer-month">구매회원 (월별)</div>
+                <div class="stats-tab" data-type="match-month">매칭공고 (월별)</div>
+                <div class="stats-tab" data-type="contract">계약 유형별</div>
+                <div class="stats-tab" data-type="location">지역별</div>
+                <div class="stats-tab" data-type="energy">발전원별</div>
+            </div>
+
+            <div class="search-area" style="justify-content: flex-end;">
+                <input type="date" id="startDate"> ~ <input type="date" id="endDate">
+                <button class="btn-search" onclick="loadData()">검색</button>
+            </div>
+
+            <table class="list-table" id="statsTable">
+                <thead>
+                <tr id="tableHeader">
+                    <th>번호</th>
+                    <th>구분</th> <th>등록수</th>
+                    <th>거래완료</th> </tr>
+                </thead>
+                <tbody id="statsBody"></tbody>
+            </table>
+
+            <button class="btn-search" style="float:right; background:#217346; margin-top:10px;" onclick="exportToExcel()">엑셀 다운로드</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 날짜 초기화 (올해 1월 1일 ~ 오늘)
+        const today = new Date();
+        document.getElementById('endDate').valueAsDate = today;
+        const start = new Date(today.getFullYear(), 0, 1); // 1월 1일
+        document.getElementById('startDate').valueAsDate = start;
+
+        // 총계 로드
+        loadGlobalStats();
+
+        // 탭 클릭 이벤트
+        const tabs = document.querySelectorAll('.stats-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                loadData();
+            });
+        });
+
+        loadData(); // 초기 데이터 로드
+    });
+
+    function loadGlobalStats() {
+        fetch('/admin/api/statistics/global')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('globalUser').textContent = data.totalUser.toLocaleString() + "명";
+                document.getElementById('globalPost').textContent = data.totalPost.toLocaleString() + "건";
+            });
+    }
+
+    function loadData() {
+        const activeTab = document.querySelector('.stats-tab.active');
+        const type = activeTab.dataset.type;
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+
+        // 1. 헤더 변경 로직
+        updateTableHeader(type);
+
+        // 2. 데이터 호출
+        fetch(`/admin/api/statistics/list?type=${type}&start=${start}&end=${end}`)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('statsBody');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    const colSpan = (type.includes('seller') || type.includes('buyer')) ? 3 : 4;
+                    tbody.innerHTML = `<tr><td colspan="${colSpan}">데이터가 없습니다.</td></tr>`;
+                    return;
+                }
+
+                data.forEach((item, index) => {
+                    let row = `<tr>
+                        <td>${index + 1}</td>
+                        <td>${item.key}</td>
+                        <td>${item.totalCount.toLocaleString()} 건</td>`;
+
+                    // 회원 통계가 아니면 '거래완료' 컬럼 추가
+                    if (!type.includes('seller') && !type.includes('buyer')) {
+                        row += `<td style="color:blue; font-weight:bold;">${item.doneCount.toLocaleString()} 건</td>`;
+                    }
+
+                    row += `</tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            });
+    }
+
+    function updateTableHeader(type) {
+        const headerRow = document.getElementById('tableHeader');
+        let keyName = "구분";
+
+        // 탭에 따라 '구분' 이름 변경
+        if(type.includes('month')) keyName = "년-월";
+        else if(type === 'location') keyName = "지역";
+        else if(type === 'energy') keyName = "발전원";
+        else if(type === 'contract') keyName = "계약유형";
+
+        // 회원 탭이면 컬럼 3개, 공고 탭이면 컬럼 4개
+        if (type.includes('seller') || type.includes('buyer')) {
+            headerRow.innerHTML = `<th>번호</th><th>${keyName}</th><th>가입 회원수</th>`;
+        } else {
+            headerRow.innerHTML = `<th>번호</th><th>${keyName}</th><th>총 공고수</th><th>거래 완료 수</th>`;
+        }
+    }
+
+    function exportToExcel() {
+        // 기존 엑셀 다운로드 함수 그대로 사용 (생략)
+        let tabName = document.querySelector('.stats-tab.active').textContent;
+        let table = document.getElementById("statsTable");
+        let html = table.outerHTML;
+        let url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+        let link = document.createElement("a");
+        document.body.appendChild(link);
+        link.href = url;
+        link.download = `${tabName}_통계.xls`;
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+</body>
+</html>

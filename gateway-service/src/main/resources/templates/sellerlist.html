@@ -80,6 +80,9 @@
                     // [수정] 날짜 필드가 없으므로 일단 하이픈(-) 처리
                     // 만약 User 엔티티에 가입일 필드(createDate 등)를 추가하면 그때 수정하세요.
                     let dateStr = "-";
+                    if (item.regDate) {
+                        dateStr = item.regDate.substring(0, 10);
+                    }
 
                     const row = `
                         <tr>
